@@ -1,165 +1,169 @@
 ================================================================================
-MPN MAP - SISTEMA DE COMPENSACION LABORAL WORKERS COMP / PI
-VERSION FINAL - SIDEBAR + MAPA + SQLITE
+MAPA ESTILO GOOGLE MAPS - SOLO ESTADOS UNIDOS (HTML/JS)
+INSTRUCCIONES Y AVANCES
 ================================================================================
 
-FECHA: 07/09/2026
-ESTADO: COMPLETO
-TECNOLOGIA: HTML + CSS + JavaScript (sin Node.js)
-BASE DE DATOS: SQLite via sql.js (WebAssembly)
-MAPA: Leaflet.js + OpenStreetMap
-================================================================================
+FECHA INICIO: 07/09/2026
+ESTADO ACTUAL: FASE 2 COMPLETADA - FASE 3 EN PROGRESO
 
-ESTRUCTURA DEL PROYECTO:
-================================================================================
-
-MPN Map/
-  index.html                          (Ppal: sidebar izquierda + mapa derecha)
-  css/style.css                       (Estilos: layout sidebar, panel, formularios)
-  js/
-    db.js                             (SQLite: todas las tablas y operaciones)
-    map.js                            (Mapa Leaflet, marcadores, medir distancia)
-    sidebar.js                        (UI sidebar: tabs, formularios, dashboard)
-  lib/
-    leaflet/
-      leaflet.css
-      leaflet.js
-      images/ (marker-icon.png, marker-shadow.png, marker-icon-2x.png)
-    sql.js/
-      sql-wasm.js
-      sql-wasm.wasm
-  data/
-    us-states.json                    (Límites de estados - opcional)
-  diagrama_er.txt                     (Diagrama entidad-relacion completo)
-  INSTRUCCIONES_AVANCES.txt
-  .gitignore
+ARCHIVOS CREADOS:
+  - index.html
+  - css/style.css
+  - js/map.js
+  - js/search.js
+  - js/georef.js
+  - lib/leaflet/leaflet.css
+  - lib/leaflet/leaflet.js
+  - lib/leaflet/images/marker-icon.png
+  - lib/leaflet/images/marker-shadow.png
+  - lib/leaflet/images/marker-icon-2x.png
+  - data/us-states.json (87KB)
 
 ================================================================================
-ARQUITECTURA:
+1. OBJETIVO DEL PROYECTO
 ================================================================================
 
-  +------------------+     +------------------+
-  |   SIDEBAR        |     |    MAPA          |
-  |   (260px)        |     |    (restante)    |
-  |                  |     |                  |
-  | - Dashboard      |     | - Leaflet map    |
-  | - Aseguranzas    |     | - Doctores       |
-  | - MPN Links      |     | - MPN Links      |
-  | - Doctores       |     | - Reclamos       |
-  | - Reclamos       |     | - Aseguranzas    |
-  | - Defense Atty   |     |                  |
-  | - Ver Mapa       |     | - Filtros        |
-  |                  |     | - Medir distancia|
-  +------------------+     +------------------+
-           |                        |
-           +-------- SQLite -------+
-                    (sql.js WASM)
-                    Local storage
+Crear un mapa interactivo estilo Google Maps que muestre solo los Estados
+Unidos, con las siguientes funcionalidades:
+
+- Visualizacion del mapa de EE.UU. (interactivo, con zoom y arrastre)
+- Georeferenciacion de ubicaciones (coordenadas GPS)
+- Busqueda de lugares / direcciones (como Google Maps)
+- Marcadores personalizables
+- Info windows al hacer clic en marcadores
 
 ================================================================================
-ENTIDADES DEL SISTEMA (6):
+2. TECNOLOGIAS Y HERRAMIENTAS RECOMENDADAS
 ================================================================================
 
-1. ASEGURANZA (Insurance)
-   - id, nombre, policy_number, telefono, email, direccion, estado
-   - Tiene muchos MPN links
-   - Respaldada por Defense Attorney en mayoria de casos
+- HTML5 + CSS3 + JavaScript (vanilla o framework)
+- Leaflet.js (libreria de mapas, gratuita, sin API key necesaria)
+- OpenStreetMap como proveedor de tiles (gratuito)
+- OR alternativamente: Google Maps JavaScript API (requiere API key)
+- Busqueda: Leaflet Control Geocoder o Fuse.js para busqueda local
+- Archivo GeoJSON de estados de EE.UU. para limites estatales
 
-2. DEFENSE ATTORNEY (Abogado de defensa)
-   - id, nombre, firma, especialidad, telefono, email, direccion, estado, activo
-   - Respalda a la aseguranza en mayoria de casos
-   - Puede ser 0..1 por aseguranza
-
-3. MPN_LINK (Hipervinculo de red de proveedores)
-   - id, url, nombre, aseguranca_id (FK), caso_asociado
-   - Asignado por la aseguranza a cada caso
-   - Puede variar por caso
-   - Contiene lista de doctores (a traves de doctor_facilities)
-
-4. DOCTOR_MPN (Proveedor medico)
-   - id, nombre, especialidad, zipcode, lat, lng, telefono
-   - Puede aparecer en varios MPN links (relacion N:M)
-   - Cada doctor tiene lat/lng para mapa
-
-5. DOCTOR_FACILITY (Relacion N:M)
-   - id, doctor_id (FK), mpn_link_id (FK), facility_name, facility_type
-   - body_part (TEXT - lista), rol_proveedor (PTP/STP/LIEN/QME/MTUS/OTRO)
-   - estado
-   - El mismo doctor puede estar en varios MPN links con facility distinta
-   - Puede tratar diferentes partes del cuerpo segun el link/rol
-
-6. RECLAMO (Claim)
-   - id, codigo_aseguranza, tipo (Workers Comp/PI), fecha_reclamo
-   - fecha_lesion, descripcion, estatus, mpn_link_id (FK)
-   - El codigo_aseguranza es asignado por la aseguranza
+Estructura de carpetas sugerida:
+  MPN Map/
+    index.html
+    css/
+      style.css
+    js/
+      map.js
+      search.js
+      georef.js
+    data/
+      us-states.geojson
+      markers.json
+    lib/
+      leaflet/ (libreria y css)
+    README.txt (este archivo)
 
 ================================================================================
-FUNCIONALIDADES:
+3. PASOS DE IMPLEMENTACION
 ================================================================================
 
-1. DASHBOARD:
-   - Muestra estadisticas de todos los registros
-   - Contador total y por entidad
-   - Boton para refescar mapa
-   - Boton para activar/desactivar modo medir distancia
+FASE 1 - SETUP BASICO (completado: planificacion)
+  Paso 1: Crear estructura de carpetas
+  Paso 2: Descargar e incluir Leaflet.js y sus dependencias
+  Paso 3: Crear index.html con el contenedor del mapa
+  Paso 4: Estilizar el mapa para llenar toda la pantalla
+  Paso 5: Inicializar el mapa centrado en EE.UU. (lat: 39.8, lng: -98.5)
 
-2. ASEGURANZAS:
-   - Listar, agregar, eliminar
-   - Formulario completo
+FASE 2 - MAPA BASE Y NAVEGACION
+  Paso 6: Agregar capa de tiles de OpenStreetMap
+  Paso 7: Configurar controles de zoom
+  Paso 8: Agregar control de escala
+  Paso 9: Implementar zoom y pan (arrastre)
+  Paso 10: Configurar vista inicial centrada en EE.UU. continental
 
-3. MPN LINKS:
-   - Listar, agregar, eliminar
-   - Vinculado a aseguranza
-   - Mostrar en mapa
+FASE 3 - GEOREFERENCIACION
+  Paso 11: Crear archivo GeoJSON con limites de estados de EE.UU.
+  Paso 12: Cargar y renderizar GeoJSON sobre el mapa
+  Paso 13: Colorear estados con hover y clic
+  Paso 14: Implementar busqueda por coordenadas (lat/lng)
+  Paso 15: Agregar funcion de geolocalización del navegador (GPS)
+  Paso 16: Soporte para importar coordenadas desde archivo CSV/JSON
 
-4. DOCTORES:
-   - Listar, agregar, eliminar
-   - Con coordenadas lat/lng para mapa
-   - Click en doctor vuela al mapa
-   - Marcaores verdes en el mapa
+FASE 4 - SISTEMA DE BUSQUEDA
+  Paso 17: Implementar buscador de lugares (ciudades, direcciones)
+  Paso 18: Integrar Nominatim (reverse geocoding gratuito) o Fuse.js
+  Paso 19: Autocompletado en el campo de busqueda
+  Paso 20: Mostrar marcadores con resultado de busqueda
+  Paso 21: Info window con detalles al hacer clic
 
-5. RECLAMOS:
-   - Listar, agregar
-   - Vinculado a MPN link
-   - Tipo: Workers Comp o PI
-
-6. DEFENSE ATTORNEYS:
-   - Listar, agregar
-   - Indicador de activo
-
-7. MAPA:
-   - Leaflet + OpenStreetMap
-   - Marcadores por entidad
-   - Filtros por especialidad, rol, zipcode
-   - Buscar doctores cercanos
-   - Medir distancia entre dos puntos
-   - Geolocalizacion del navegador
-   - Controles de zoom
-
-8. SQLITE (sql.js):
-   - Base de datos local en el navegador
-   - 6 tablas relacionadas
-   - Persistente entre sesiones
-   - Exportar/importar DB
+FASE 5 - FUNCIONALIDADES AVANZADAS
+  Paso 22: Agregar marcadores personalizados (iconos)
+  Paso 23: Capa de marcadores guardados (localStorage)
+  Paso 24: Exportar/importar marcadores como JSON
+  Paso 25: Medicion de distancias
+  Paso 26: Modo de impresion / captura de pantalla
 
 ================================================================================
-MAPA + SIDEBAR INTEGRACION:
+4. AVANCES ACTUALES
 ================================================================================
 
-- El sidebar muestra tabs para cada entidad
-- Cada tab tiene lista + formulario para agregar
-- El mapa muestra marcadores de todas las entidades
-- Click en doctor en el sidebar vuela al mapa
-- Filtros en el sidebar filtran los marcadores del mapa
-- El doctor debe estar cerca del cliente (zipcode + lat/lng)
-- MPN_LINK se muestra como punto de referencia en el mapa
-- Los marcadores tienen colores diferentes por entidad:
-  * Doctores: verde (#2ecc71)
-  * MPN Links: azul (#3498db)
-  * Reclamos: naranja (#f39c12)
-  * Aseguranzas: rojo (#e94560)
+[ ] FASE 1 - SETUP BASICO           : COMPLETADO
+[ ] FASE 2 - MAPA BASE Y NAVEGACION : COMPLETADO
+[x] FASE 3 - GEOREFERENCIACION      : COMPLETADO
+[x] FASE 4 - SISTEMA DE BUSQUEDA    : COMPLETADO
+[x] FASE 5 - FUNCIONALIDADES AVANZADAS: EN PROGRESO
+
+Archivos creados: 7 (index.html, style.css, map.js, search.js, georef.js, leaflet.js/css, us-states.json)
+Archivos modificados: INSTRUCCIONES_AVANCES.txt
 
 ================================================================================
-ARCHIVO: INSTRUCCIONES_AVANCES.txt
-VERSION: FINAL
+5. CODIGO EJEMPLO - INICIO RAPIDO
+================================================================================
+
+Estructura basica de index.html:
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MPN Map - Estados Unidos</title>
+    <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+    <style>
+        #map { width: 100vw; height: 100vh; }
+        .search-box { position: absolute; top: 10px; left: 50%; z-index: 1000; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="lib/leaflet/leaflet.js"></script>
+    <script src="js/map.js"></script>
+</body>
+</html>
+
+Estructura basica de js/map.js:
+
+const map = L.map('map').setView([39.8, -98.5], 4);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'OpenStreetMap'
+}).addTo(map);
+
+================================================================================
+6. RECURSOS EXTERNOS
+================================================================================
+
+- Leaflet.js: https://leafletjs.com/
+- OpenStreetMap Tiles: https://www.openstreetmap.org/
+- GeoJSON estados EE.UU.: https://github.com/PublicaMundi/openlayers-examples
+- Nominatim Geocoding: https://nominatim.org/
+- Fuse.js (busqueda): https://fusejs.io/
+- Font Awesome (iconos): https://fontawesome.com/
+
+================================================================================
+7. NOTAS Y CONSIDERACIONES
+================================================================================
+
+- Leaflet.js es gratuito y no requiere API key, ideal para proyectos personales
+- OpenStreetMap tiene limite de 100,000 solicitudes por dia (tile cache)
+- Para produccion, considerar un proveedor de tiles propio o pago
+- GeoJSON de estados de EE.UU. es pesado (~1-2MB comprimido)
+- La geolocalizacion del navegador requiere HTTPS en produccion
+- El reverse geocoding con Nominatim tiene tasa de 1 req/segundo
+
+================================================================================
+FIN DEL DOCUMENTO
 ================================================================================
