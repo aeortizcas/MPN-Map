@@ -49,6 +49,87 @@ const MAP = {
         document.getElementById('btn-distance').addEventListener('click', () => {
             this.toggleMeasureMode();
         });
+        document.getElementById('btn-open-sqlite').addEventListener('click', () => {
+            this.toggleSqlitePanel();
+        });
+        document.getElementById('btn-close-sqlite').addEventListener('click', () => {
+            this.toggleSqlitePanel();
+        });
+        document.getElementById('btn-load-sqlite').addEventListener('click', async () => {
+            await DB.loadToMap();
+        });
+        document.getElementById('btn-clear-sqlite').addEventListener('click', () => {
+            DB.clearAll();
+            this.markersLayer.clearLayers();
+            this.markers = [];
+            document.getElementById('sqlite-markers-list').innerHTML = '';
+            document.getElementById('marker-count').textContent = '0 marcadores guardados';
+            this.showToast('Base de datos limpia');
+        });
+        document.getElementById('btn-export-sqlite').addEventListener('click', () => {
+            DB.exportDB();
+        });
+        this.setupSqliteImport();
+    },
+
+    setupSqliteImport() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.db,.sqlite';
+        input.style.display = 'none';
+        input.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                DB.importDB(e.target.files[0]);
+            }
+        });
+        document.body.appendChild(input);
+
+        const btn = document.createElement('button');
+        btn.id = 'import-sqlite-btn';
+        btn.title = 'Importar base de datos';
+        btn.innerHTML = '<i class="fas fa-file-import"></i>';
+        btn.addEventListener('click', () => input.click());
+        document.body.appendChild(btn);
+    },
+
+    toggleSqlitePanel() {
+        const panel = document.getElementById('sqlite-panel');
+        panel.classList.toggle('open');
+        if (panel.classList.contains('open')) {
+            this.updateSqliteList();
+        }
+    },
+
+    async updateSqliteList() {
+        const markers = DB.getAllMarkers();
+        document.getElementById('marker-count').textContent = `${markers.length} marcadores guardados`;
+        const list = document.getElementById('sqlite-markers-list');
+        if (markers.length === 0) {
+            list.innerHTML = '<div style="color:#888;text-align:center;padding:20px;">No hay marcadores guardados</div>';
+            return;
+        }
+        list.innerHTML = markers.map(m => `
+            <div class="sqlite-marker-item">
+                <div class="marker-info">
+                    <div class="m-name">${m[3] || 'Sin nombre'}</div>
+                    <div class="m-coords">${m[1].toFixed(4)}, ${m[2].toFixed(4)} | ${m[4]}</div>
+                </div>
+                <div class="marker-actions">
+                    <button title="Volar" onclick="MAP.flyToMarker(${m[1]},${m[2]})"><i class="fas fa-location-arrow"></i></button>
+                    <button title="Eliminar" onclick="MAP.deleteSqliteMarker(${m[0]})"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    flyToMarker(lat, lng) {
+        this.map.flyTo([lat, lng], 10);
+    },
+
+    async deleteSqliteMarker(id) {
+        DB.deleteMarker(id);
+        this.updateSqliteList();
+        this.showToast('Marcador eliminado');
     },
 
     toggleMeasureMode() {
@@ -256,6 +337,9 @@ const MAP = {
         marker.openPopup();
 
         this.markers.push({ lat: latlng.lat, lng: latlng.lng, marker, address: options.address || null });
+        if (DB.loaded && options.saveToDb !== false) {
+            DB.addMarker(latlng.lat, latlng.lng, options.address || '', options.type || 'custom');
+        }
         this.showToast('Marcador agregado');
     },
 

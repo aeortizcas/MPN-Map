@@ -37,10 +37,30 @@
         <span id="state-info"></span>
     </div>
     <div id="measure-result"></div>
+    <div id="sqlite-panel">
+        <div id="sqlite-header">
+            <span><i class="fas fa-database"></i> SQLite</span>
+            <button id="btn-close-sqlite"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="sqlite-body">
+            <div id="sqlite-info">
+                <span id="marker-count">0 marcadores guardados</span>
+            </div>
+            <div id="sqlite-buttons">
+                <button id="btn-load-sqlite" title="Cargar marcadores"><i class="fas fa-download"></i> Cargar</button>
+                <button id="btn-clear-sqlite" title="Borrar todo"><i class="fas fa-trash"></i> Borrar</button>
+                <button id="btn-export-sqlite" title="Exportar DB"><i class="fas fa-file-export"></i> Exportar</button>
+            </div>
+            <div id="sqlite-markers-list"></div>
+        </div>
+    </div>
+    <button id="btn-open-sqlite" title="Base de datos SQLite"><i class="fas fa-database"></i></button>
 
+    <script src="lib/sql.js/sql-wasm.js"></script>
     <script src="lib/leaflet/leaflet.js"></script>
     <script src="js/map.js"></script>
     <script src="js/search.js"></script>
     <script src="js/georef.js"></script>
+    <script src="js/db.js"></script>
 </body>
 </html>

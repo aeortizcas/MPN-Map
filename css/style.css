@@ -100,6 +100,14 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: h
 .leaflet-control-zoom a:hover { background: #e94560 !important; }
 .leaflet-control-zoom { border-radius: 8px !important; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important; }
 
+#import-sqlite-btn {
+    position: fixed; bottom: 50px; right: 80px; width: 45px; height: 45px;
+    background: #3498db; border: none; color: #fff; border-radius: 50%;
+    cursor: pointer; font-size: 18px; z-index: 1500;
+    box-shadow: 0 4px 15px rgba(52,152,219,0.4); transition: all 0.3s;
+}
+#import-sqlite-btn:hover { background: #2980b9; transform: scale(1.1); }
+
 /* State hover */
 .state-feature { fill: #1a1a2e; fill-opacity: 0.6; stroke: #e94560; stroke-weight: 1; }
 .state-feature:hover { fill: #e94560; fill-opacity: 0.4; }
@@ -117,3 +125,70 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: h
     border-left: 4px solid #e94560;
 }
 @keyframes slideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* SQLite Panel */
+#sqlite-panel {
+    position: fixed; top: 60px; right: -320px; width: 310px;
+    height: calc(100vh - 60px);
+    background: #1a1a2e; border-left: 2px solid #e94560;
+    z-index: 1500; transition: right 0.3s ease;
+    display: flex; flex-direction: column;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+}
+#sqlite-panel.open { right: 0; }
+#sqlite-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 15px; background: #16213e; border-bottom: 1px solid #0f3460;
+}
+#sqlite-header span { color: #e94560; font-weight: 700; font-size: 14px; }
+#sqlite-header button { background: none; border: none; color: #aaa; cursor: pointer; font-size: 16px; }
+#sqlite-header button:hover { color: #e94560; }
+#sqlite-body { padding: 12px; flex: 1; overflow-y: auto; }
+#sqlite-info { margin-bottom: 12px; }
+#marker-count { color: #aaa; font-size: 13px; }
+#sqlite-buttons { display: flex; gap: 5px; margin-bottom: 12px; flex-wrap: wrap; }
+#sqlite-buttons button {
+    flex: 1; min-width: 70px; padding: 6px 8px; border: none;
+    border-radius: 6px; color: #fff; font-size: 11px; font-weight: 600;
+    cursor: pointer; transition: all 0.3s;
+}
+#btn-load-sqlite { background: #2ecc71; }
+#btn-load-sqlite:hover { background: #27ae60; }
+#btn-clear-sqlite { background: #e74c3c; }
+#btn-clear-sqlite:hover { background: #c0392b; }
+#btn-export-sqlite { background: #3498db; }
+#btn-export-sqlite:hover { background: #2980b9; }
+#sqlite-markers-list { max-height: 400px; overflow-y: auto; }
+.sqlite-marker-item {
+    padding: 10px; margin-bottom: 5px; background: #0f3460;
+    border-radius: 6px; color: #fff; font-size: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: background 0.2s;
+}
+.sqlite-marker-item:hover { background: #1a3a6e; }
+.sqlite-marker-item .marker-info { flex: 1; }
+.sqlite-marker-item .marker-info .m-name { font-weight: 600; }
+.sqlite-marker-item .marker-info .m-coords { color: #aaa; font-size: 11px; }
+.sqlite-marker-item .marker-actions { display: flex; gap: 5px; }
+.sqlite-marker-item .marker-actions button {
+    background: none; border: none; color: #aaa; cursor: pointer;
+    font-size: 12px; padding: 2px 5px; border-radius: 3px;
+}
+.sqlite-marker-item .marker-actions button:hover { color: #e94560; }
+#btn-open-sqlite {
+    position: fixed; bottom: 50px; right: 20px; width: 45px; height: 45px;
+    background: #9b59b6; border: none; color: #fff; border-radius: 50%;
+    cursor: pointer; font-size: 18px; z-index: 1500;
+    box-shadow: 0 4px 15px rgba(155,89,182,0.4); transition: all 0.3s;
+}
+#btn-open-sqlite:hover { background: #8e44ad; transform: scale(1.1); }
+
+/* Import button in controls */
+#import-sqlite-btn {
+    position: fixed; bottom: 50px; right: 80px; width: 45px; height: 45px;
+    background: #3498db; border: none; color: #fff; border-radius: 50%;
+    cursor: pointer; font-size: 18px; z-index: 1500;
+    box-shadow: 0 4px 15px rgba(52,152,219,0.4); transition: all 0.3s;
+    display: none;
+}
+#import-sqlite-btn:hover { background: #2980b9; transform: scale(1.1); }
