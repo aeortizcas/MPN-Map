@@ -1,0 +1,169 @@
+================================================================================
+MAPA ESTILO GOOGLE MAPS - SOLO ESTADOS UNIDOS (HTML/JS)
+INSTRUCCIONES Y AVANCES
+================================================================================
+
+FECHA INICIO: 07/09/2026
+ESTADO ACTUAL: FASE 2 COMPLETADA - FASE 3 EN PROGRESO
+
+ARCHIVOS CREADOS:
+  - index.html
+  - css/style.css
+  - js/map.js
+  - js/search.js
+  - js/georef.js
+  - lib/leaflet/leaflet.css
+  - lib/leaflet/leaflet.js
+  - lib/leaflet/images/marker-icon.png
+  - lib/leaflet/images/marker-shadow.png
+  - lib/leaflet/images/marker-icon-2x.png
+  - data/us-states.json (87KB)
+
+================================================================================
+1. OBJETIVO DEL PROYECTO
+================================================================================
+
+Crear un mapa interactivo estilo Google Maps que muestre solo los Estados
+Unidos, con las siguientes funcionalidades:
+
+- Visualizacion del mapa de EE.UU. (interactivo, con zoom y arrastre)
+- Georeferenciacion de ubicaciones (coordenadas GPS)
+- Busqueda de lugares / direcciones (como Google Maps)
+- Marcadores personalizables
+- Info windows al hacer clic en marcadores
+
+================================================================================
+2. TECNOLOGIAS Y HERRAMIENTAS RECOMENDADAS
+================================================================================
+
+- HTML5 + CSS3 + JavaScript (vanilla o framework)
+- Leaflet.js (libreria de mapas, gratuita, sin API key necesaria)
+- OpenStreetMap como proveedor de tiles (gratuito)
+- OR alternativamente: Google Maps JavaScript API (requiere API key)
+- Busqueda: Leaflet Control Geocoder o Fuse.js para busqueda local
+- Archivo GeoJSON de estados de EE.UU. para limites estatales
+
+Estructura de carpetas sugerida:
+  MPN Map/
+    index.html
+    css/
+      style.css
+    js/
+      map.js
+      search.js
+      georef.js
+    data/
+      us-states.geojson
+      markers.json
+    lib/
+      leaflet/ (libreria y css)
+    README.txt (este archivo)
+
+================================================================================
+3. PASOS DE IMPLEMENTACION
+================================================================================
+
+FASE 1 - SETUP BASICO (completado: planificacion)
+  Paso 1: Crear estructura de carpetas
+  Paso 2: Descargar e incluir Leaflet.js y sus dependencias
+  Paso 3: Crear index.html con el contenedor del mapa
+  Paso 4: Estilizar el mapa para llenar toda la pantalla
+  Paso 5: Inicializar el mapa centrado en EE.UU. (lat: 39.8, lng: -98.5)
+
+FASE 2 - MAPA BASE Y NAVEGACION
+  Paso 6: Agregar capa de tiles de OpenStreetMap
+  Paso 7: Configurar controles de zoom
+  Paso 8: Agregar control de escala
+  Paso 9: Implementar zoom y pan (arrastre)
+  Paso 10: Configurar vista inicial centrada en EE.UU. continental
+
+FASE 3 - GEOREFERENCIACION
+  Paso 11: Crear archivo GeoJSON con limites de estados de EE.UU.
+  Paso 12: Cargar y renderizar GeoJSON sobre el mapa
+  Paso 13: Colorear estados con hover y clic
+  Paso 14: Implementar busqueda por coordenadas (lat/lng)
+  Paso 15: Agregar funcion de geolocalización del navegador (GPS)
+  Paso 16: Soporte para importar coordenadas desde archivo CSV/JSON
+
+FASE 4 - SISTEMA DE BUSQUEDA
+  Paso 17: Implementar buscador de lugares (ciudades, direcciones)
+  Paso 18: Integrar Nominatim (reverse geocoding gratuito) o Fuse.js
+  Paso 19: Autocompletado en el campo de busqueda
+  Paso 20: Mostrar marcadores con resultado de busqueda
+  Paso 21: Info window con detalles al hacer clic
+
+FASE 5 - FUNCIONALIDADES AVANZADAS
+  Paso 22: Agregar marcadores personalizados (iconos)
+  Paso 23: Capa de marcadores guardados (localStorage)
+  Paso 24: Exportar/importar marcadores como JSON
+  Paso 25: Medicion de distancias
+  Paso 26: Modo de impresion / captura de pantalla
+
+================================================================================
+4. AVANCES ACTUALES
+================================================================================
+
+[ ] FASE 1 - SETUP BASICO           : COMPLETADO
+[ ] FASE 2 - MAPA BASE Y NAVEGACION : COMPLETADO
+[x] FASE 3 - GEOREFERENCIACION      : COMPLETADO
+[x] FASE 4 - SISTEMA DE BUSQUEDA    : COMPLETADO
+[x] FASE 5 - FUNCIONALIDADES AVANZADAS: EN PROGRESO
+
+Archivos creados: 7 (index.html, style.css, map.js, search.js, georef.js, leaflet.js/css, us-states.json)
+Archivos modificados: INSTRUCCIONES_AVANCES.txt
+
+================================================================================
+5. CODIGO EJEMPLO - INICIO RAPIDO
+================================================================================
+
+Estructura basica de index.html:
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MPN Map - Estados Unidos</title>
+    <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+    <style>
+        #map { width: 100vw; height: 100vh; }
+        .search-box { position: absolute; top: 10px; left: 50%; z-index: 1000; }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="lib/leaflet/leaflet.js"></script>
+    <script src="js/map.js"></script>
+</body>
+</html>
+
+Estructura basica de js/map.js:
+
+const map = L.map('map').setView([39.8, -98.5], 4);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'OpenStreetMap'
+}).addTo(map);
+
+================================================================================
+6. RECURSOS EXTERNOS
+================================================================================
+
+- Leaflet.js: https://leafletjs.com/
+- OpenStreetMap Tiles: https://www.openstreetmap.org/
+- GeoJSON estados EE.UU.: https://github.com/PublicaMundi/openlayers-examples
+- Nominatim Geocoding: https://nominatim.org/
+- Fuse.js (busqueda): https://fusejs.io/
+- Font Awesome (iconos): https://fontawesome.com/
+
+================================================================================
+7. NOTAS Y CONSIDERACIONES
+================================================================================
+
+- Leaflet.js es gratuito y no requiere API key, ideal para proyectos personales
+- OpenStreetMap tiene limite de 100,000 solicitudes por dia (tile cache)
+- Para produccion, considerar un proveedor de tiles propio o pago
+- GeoJSON de estados de EE.UU. es pesado (~1-2MB comprimido)
+- La geolocalizacion del navegador requiere HTTPS en produccion
+- El reverse geocoding con Nominatim tiene tasa de 1 req/segundo
+
+================================================================================
+FIN DEL DOCUMENTO
+================================================================================
