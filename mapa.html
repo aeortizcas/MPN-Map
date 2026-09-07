@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MPN Map - Mapa de Estados Unidos</title>
+    <title>MPN Map - Firebase + Mapa</title>
     <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -13,6 +13,7 @@
         <div id="logo">
             <i class="fas fa-map-marked-alt"></i>
             <span>MPN Map</span>
+            <span id="firebase-status" style="font-size:11px;color:#aaa;margin-left:10px;">🔴 Firebase</span>
         </div>
         <div id="search-container">
             <div id="dual-search">
@@ -24,6 +25,7 @@
             </div>
         </div>
         <div id="controls">
+            <button id="btn-firebase" title="Firebase" onclick="FIREBASE.togglePanel()"><i class="fas fa-database"></i></button>
             <button id="btn-distance" title="Medir distancia"><i class="fas fa-ruler"></i></button>
             <button id="btn-geolocate" title="Mi ubicacion"><i class="fas fa-location-crosshairs"></i></button>
             <button id="btn-zoom-in" title="Zoom +"><i class="fas fa-plus"></i></button>
@@ -38,9 +40,43 @@
     </div>
     <div id="measure-result"></div>
 
+    <div id="firebase-panel" style="display:none;position:fixed;top:60px;right:10px;width:350px;background:#1a1a2e;border:2px solid #e94560;border-radius:10px;z-index:2000;padding:15px;box-shadow:0 5px 25px rgba(0,0,0,0.5);">
+        <h3 style="color:#e94560;margin-bottom:10px;"><i class="fas fa-fire"></i> Firebase</h3>
+        <div id="firebase-connection" style="color:#aaa;font-size:12px;margin-bottom:10px;">No conectado</div>
+        <div class="btn-row" style="margin-bottom:10px;">
+            <button class="btn-primary" onclick="FIREBASE.connect()" style="flex:1;font-size:11px;padding:6px;">Conectar</button>
+            <button class="btn-secondary" onclick="FIREBASE.disconnect()" style="flex:1;font-size:11px;padding:6px;">Desconectar</button>
+        </div>
+        <div class="panel-section">
+            <h4 style="color:#aaa;font-size:12px;margin-bottom:8px;">Guardar Marcador en Firebase</h4>
+            <div class="form-group">
+                <input type="text" id="fb-nombre" placeholder="Nombre del marcador..." style="width:100%;padding:6px;background:#0f1a2e;border:1px solid #0f3460;border-radius:4px;color:#fff;font-size:12px;" />
+            </div>
+            <div class="form-group">
+                <input type="text" id="fb-lat" placeholder="Latitud..." style="width:100%;padding:6px;background:#0f1a2e;border:1px solid #0f3460;border-radius:4px;color:#fff;font-size:12px;" />
+            </div>
+            <div class="form-group">
+                <input type="text" id="fb-lng" placeholder="Longitud..." style="width:100%;padding:6px;background:#0f1a2e;border:1px solid #0f3460;border-radius:4px;color:#fff;font-size:12px;" />
+            </div>
+            <div class="form-group">
+                <input type="text" id="fb-address" placeholder="Direccion..." style="width:100%;padding:6px;background:#0f1a2e;border:1px solid #0f3460;border-radius:4px;color:#fff;font-size:12px;" />
+            </div>
+            <button class="btn-primary" onclick="FIREBASE.saveMarker()" style="font-size:11px;padding:6px;">Guardar en Firebase</button>
+        </div>
+        <div class="panel-section">
+            <h4 style="color:#aaa;font-size:12px;margin-bottom:8px;">Marcadores en Firebase</h4>
+            <div id="fb-markers-list" style="max-height:200px;overflow-y:auto;"></div>
+            <button class="btn-secondary" onclick="FIREBASE.loadMarkers()" style="font-size:11px;padding:6px;margin-top:5px;width:100%;">Cargar Todos</button>
+        </div>
+        <button id="btn-close-firebase" onclick="FIREBASE.togglePanel()" style="position:absolute;top:8px;right:12px;background:none;border:none;color:#aaa;cursor:pointer;font-size:16px;"><i class="fas fa-times"></i></button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
     <script src="lib/leaflet/leaflet.js"></script>
     <script src="js/map.js"></script>
     <script src="js/search.js"></script>
     <script src="js/georef.js"></script>
+    <script src="js/firebase.js"></script>
 </body>
 </html>
