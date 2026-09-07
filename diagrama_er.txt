@@ -24,6 +24,7 @@ ENTIDAD 1: RECLAMO (CLAIM)
 - fecha_lesion      (DATE)
 - descripcion       (TEXT)
 - estatus           (Abierto / Cerrado / En proceso)
+- mpn_link_id       (FK - Referencia al MPN link asignado)
 
 ENTIDAD 2: ASEGURANZA (INSURANCE)
 -----------------------------------
@@ -47,6 +48,14 @@ ENTIDAD 3: DEFENSE ATTORNEY (ABOGADO DE DEFENSA)
 - estado            (VARCHAR)
 - activo            (BOOLEAN - respalda a la aseguranza en mayoria de casos)
 
+ENTIDAD 4: MPN_LINK (HIPERVINCULO DE RED DE PROVEEDORES)
+-------------------------------------------------------------
+- id_mpn_link       (PK)
+- url               (VARCHAR - Hipervinculo al MPN)
+- nombre            (VARCHAR - Nombre del enlace MPN)
+- aseguranca_id     (FK - Referencia a ASEGURANZA)
+- caso_asociado     (VARCHAR - Referencia al caso/reclamo)
+
 ================================================================================
 RELACIONES CONFIRMADAS
 ================================================================================
@@ -55,33 +64,38 @@ RECLAMO tiene codigo_aseguranza -> asignado por ASEGURANZA
 ASEGURANZA es respaldada por DEFENSE ATTORNEY en MAYORIA de casos
   (DEFENSE ATTORNEY(0..1) --- ASEGURANZA)
 
+ASEGURANZA tiene MUCHOS MPN links (1:N)
+  Cada RECLAMO tiene UN MPN link asignado (N:1)
+  Card: ASEGURANZA(1) --- (N) MPN_LINK
+  Card: RECLAMO(1) --- (N) MPN_LINK (o N:1 dependiendo del modelo)
+  
+  NOTA: MPN_LINK es un hipervinculo que la aseguranza envia
+        Puede variar por caso
+        Una aseguranza puede tener varios MPN links para distintos casos
+
 ================================================================================
 DIAGRAMA VISUAL
 ================================================================================
 
-              ASEGURANZA
-         ┌──────────────┐
-         │  id_seguro   │
-         │  nombre      │
-         │  policy_num  │
-         └──────┬───────┘
-                │
-                │ 0..1 ─── DEFENSE ATTORNEY
-                │         (respalda en mayoria de casos)
-                │            ┌──────────────┐
-                │            │ id_attorney  │
-                │            │ nombre       │
-                │            │ firma        │
-                │            │ activo(0..1) │
-                │            └──────────────┘
-                │
-   codigo_aseguranza ──► RECLAMO
-              ┌──────────────┐
-              │  id_claim    │
-              │  tipo(WC/PI) │
-              │  fecha       │
-              │  estatus     │
-              └──────────────┘
+               ASEGURANZA ──1:N──► MPN_LINK
+          ┌──────────────┐     ┌──────────────┐
+          │  id_seguro   │     │  id_mpn_link │
+          │  nombre      │     │  url         │
+          │  policy_num  │     │  nombre      │
+          └──────┬───────┘     │  aseguranca_id│
+                 │             │  caso_assoc.  │
+                 │ 0..1 ───► DEFENSE ATTORNEY  │
+                 │                  ┌────────┴─────┐
+                 │                  │              │
+   codigo_asegura│                  │              │
+   ncia ──► RECLAMO │              │              │
+          ┌──────────────┐         │              │
+          │  id_claim    │         └──────────────┘
+          │  tipo(WC/PI) │
+          │  fecha       │
+          │  estatus     │
+          │  mpn_link_id │
+          └──────────────┘
 
 ================================================================================
 NOTAS
@@ -93,26 +107,6 @@ NOTAS
 - Es un diagrama vivo - se agrega una entidad a la vez segun se explique
 
 ================================================================================
-NOTAS IMPORTANTES
-================================================================================
-
-1. DEFENSE ATTORNAY: En la MAYORIA de los casos de Workers Comp / PI,
-   la aseguranza esta respaldada por un Defense Attorney.
-   No siempre, pero en la mayoria de los casos.
-
-2. ASEGURANZA: Es la entidad que maneja el caso desde el inicio.
-   Decide que proveedores estan aprobados en el MPN.
-
-3. MPN (Medical Provider Network): Es la red de proveedores medicos
-   aprobados por la aseguranza para tratar las lesiones de trabajo.
-
-4. RECLAMANTE: El trabajador lesionado que presenta el reclamo.
-   Tiene derecho a atencion medica aprobada por el MPN.
-
-5. TRATAMIENTO: Conecta a todos los actores. Es el registro de
-   cada cita/atencion medica dentro del reclamo.
-
-================================================================================
 ARCHIVO: diagrama_er.txt
-VERSION: 1.0
+VERSION: 2.0
 ================================================================================
