@@ -11,15 +11,19 @@ ESTADO: BORRADOR
 ENTIDADES
 ================================================================================
 
+================================================================================
+ENTIDADES CONFIRMADAS
+================================================================================
+
 ENTIDAD 1: RECLAMO (CLAIM)
 ---------------------------
 - id_claim          (PK)
+- codigo_aseguranza (VARCHAR - Codigo asignado por la aseguranza)
 - tipo              (Workers Comp / PI)
 - fecha_reclamo     (DATE)
 - fecha_lesion      (DATE)
 - descripcion       (TEXT)
 - estatus           (Abierto / Cerrado / En proceso)
-- mpn_id            (FK - Referencia a la red de proveedores)
 
 ENTIDAD 2: ASEGURANZA (INSURANCE)
 -----------------------------------
@@ -29,7 +33,7 @@ ENTIDAD 2: ASEGURANZA (INSURANCE)
 - telefono          (VARCHAR)
 - email             (VARCHAR)
 - direccion         (VARCHAR)
-- estado            (California, Texas, etc.)
+- estado            (VARCHAR)
 
 ENTIDAD 3: DEFENSE ATTORNEY (ABOGADO DE DEFENSA)
 --------------------------------------------------
@@ -43,181 +47,50 @@ ENTIDAD 3: DEFENSE ATTORNEY (ABOGADO DE DEFENSA)
 - estado            (VARCHAR)
 - activo            (BOOLEAN - respalda a la aseguranza en mayoria de casos)
 
-ENTIDAD 4: EMPLEADOR (EMPLOYER)
---------------------------------
-- id_employer       (PK)
-- nombre            (VARCHAR)
-- direccion         (VARCHAR)
-- ciudad            (VARCHAR)
-- estado            (VARCHAR)
-- telefono          (VARCHAR)
-- industry          (VARCHAR)
-- mpn_id            (FK - Red de proveedores aprobada)
-
-ENTIDAD 5: RECLAMANTE (CLAIMANT / TRABAJADOR)
-----------------------------------------------
-- id_claimant       (PK)
-- nombre            (VARCHAR)
-- num_seguro_social (VARCHAR)
-- direccion         (VARCHAR)
-- telefono          (VARCHAR)
-- fecha_nacimiento  (DATE)
-- ocupacion         (VARCHAR)
-- fecha_lesion      (DATE)
-
-ENTIDAD 6: PROVEEDOR_MPN (MEDICAL PROVIDER)
---------------------------------------------
-- id_provider       (PK)
-- nombre            (VARCHAR)
-- especialidad      (VARCHAR)
-- tipo              (Doctor / Clinica / Hospital / Fisioterapeuta)
-- direccion         (VARCHAR)
-- ciudad            (VARCHAR)
-- estado            (VARCHAR)
-- telefono          (VARCHAR)
-- lat               (DECIMAL)
-- lng               (DECIMAL)
-- mpn_code          (VARCHAR - Codigo de proveedor de la red)
-- aprobado          (BOOLEAN - Aprobado por la aseguranza)
-
-ENTIDAD 7: ESPECIALIDAD
-------------------------
-- id_specialty      (PK)
-- nombre            (VARCHAR) - Ej: Ortopedia, Neurologia, Quiropratica
-- descripcion       (TEXT)
-- categoria         (VARCHAR - Ej: Tratamiento, Cirugia, Rehabilitacion)
-
-ENTIDAD 8: TRATAMIENTO (TREATMENT)
------------------------------------
-- id_treatment      (PK)
-- id_claim          (FK)
-- id_provider       (FK)
-- id_specialty      (FK)
-- fecha_inicio      (DATE)
-- fecha_fin         (DATE)
-- diagnostico       (TEXT)
-- resultado         (TEXT)
-- estado            (Pendiente / En curso / Completado)
-- costo             (DECIMAL)
-- pagado_por        (SEGURIDAD / EMPLEADOR / RECLAMANTE)
-
 ================================================================================
-RELACIONES (CARDINALIDADES)
+RELACIONES CONFIRMADAS
 ================================================================================
 
-RELACION 1: EMPLEADOR -> RECLAMO
--------------------------------
-  UN EMPLEADOR puede tener MUCHOS RECLAMOS (1:N)
-  CADA RECLAMO pertenece a UN EMPLEADOR (N:1)
-  Card: EMPLEADOR(1) --- (N) RECLAMO
-
-RELACION 2: ASEGURANZA -> RECLAMO
----------------------------------
-  UNA ASEGURANZA maneja MUCHOS RECLAMOS (1:N)
-  CADA RECLAMO es manejado por UNA ASEGURANZA (N:1)
-  Card: ASEGURANZA(1) --- (N) RECLAMO
-
-RELACION 3: DEFENSE ATTORNEY -> ASEGURANZA
-------------------------------------------
-  UN DEFENSE ATTORNEY representa a UNA ASEGURANZA (N:1)
-  UNA ASEGURANZA es respaldada por DEFENSE ATTORNEY en MAYORIA DE CASOS
-  NOTA: En la mayoria de los casos, la aseguranza tiene un Defense Attorney
-  Card: DEFENSE ATTORNEY(0..1) --- (1) ASEGURANZA
-
-RELACION 4: RECLAMANTE -> RECLAMO
----------------------------------
-  UN RECLAMANTE presenta UN RECLAMO (1:1)
-  UN RECLAMO es presentado por UN RECLAMANTE (1:1)
-  Card: RECLAMANTE(1) --- (1) RECLAMO
-
-RELACION 5: RECLAMO -> TRATAMIENTO
-----------------------------------
-  UN RECLAMO tiene MUCHOS TRATAMIENTOS (1:N)
-  CADA TRATAMIENTO pertenece a UN RECLAMO (N:1)
-  Card: RECLAMO(1) --- (N) TRATAMIENTO
-
-RELACION 6: PROVEEDOR_MPN -> TRATAMIENTO
-----------------------------------------
-  UN PROVEEDOR realiza MUCHOS TRATAMIENTOS (1:N)
-  CADA TRATAMIENTO es realizado por UN PROVEEDOR (N:1)
-  Card: PROVEEDOR_MPN(1) --- (N) TRATAMIENTO
-
-RELACION 7: ESPECIALIDAD -> PROVEEDOR_MPN
------------------------------------------
-  UNA ESPECIALIDAD tiene MUCHOS PROVEEDORES (1:N)
-  CADA PROVEEDOR tiene UNA ESPECIALIDAD (N:1)
-  Card: ESPECIALIDAD(1) --- (N) PROVEEDOR_MPN
-
-RELACION 8: ESPECIALIDAD -> TRATAMIENTO
----------------------------------------
-  UNA ESPECIALIDAD aplica a MUCHOS TRATAMIENTOS (1:N)
-  CADA TRATAMIENTO tiene UNA ESPECIALIDAD (N:1)
-  Card: ESPECIALIDAD(1) --- (N) TRATAMIENTO
+RECLAMO tiene codigo_aseguranza -> asignado por ASEGURANZA
+ASEGURANZA es respaldada por DEFENSE ATTORNEY en MAYORIA de casos
+  (DEFENSE ATTORNEY(0..1) --- ASEGURANZA)
 
 ================================================================================
-DIAGRAMA VISUAL SIMPLIFICADO
+DIAGRAMA VISUAL
 ================================================================================
 
-                    ┌─────────────────────┐
-                    │    EMPLEADOR        │
-                    │  (Employer)         │
-                    │                     │
-                    │  id_employer (PK)   │
-                    │  nombre             │
-                    │  direccion          │
-                    │  industry           │
-                    │  mpn_id             │
-                    └──────────┬──────────┘
-                               │ 1:N
-                               │
-                    ┌──────────▼──────────┐
-                    │     RECLAMO         │
-                    │     (Claim)         │
-                    │                     │
-                    │  id_claim (PK)      │
-                    │  tipo (WC/PI)       │
-                    │  fecha_lesion       │
-                    │  estatus            │
-                    │  mpn_id (FK)        │
-                    └──┬──────────┬───────┘
-                       │          │
-              1:N ─────┤          │─────1:N──────┐
-                       │          │              │
-            ┌──────────▼──┐  ┌───▼──────────┐  ┌▼───────────────┐
-            │  ASEGURANZA │  │ RECLAMANTE   │  │  TRATAMIENTO   │
-            │(Insurance)  │  │ (Claimant)   │  │  (Treatment)   │
-            │             │  │              │  │                │
-            │ id_seguro   │  │ id_claimant  │  │ id_treatment   │
-            │ policy_num  │  │ nombre       │  │ id_claim(FK)   │
-            │ telefono    │  │ num_ss       │  │ id_provider(FK)│
-            │ email       │  │ ocupacion    │  │ id_specialty   │
-            │ estado      │  │ fecha_nac    │  │ fecha_inicio   │
-            └──────┬──────┘  └──────────────┘  │ fecha_fin      │
-                   │                           │ diagnostico    │
-         ┌─────────▼─────────┐                 │ resultado      │
-         │ DEFENSE ATTORNEY  │                 │ costo          │
-         │ (Abogado Defensa) │                 │ pagado_por     │
-         │                   │                 └───────┬────────┘
-         │ id_attorney (PK)  │                         │ N:1
-         │ nombre            │                         │
-         │ firma             │                 ┌───────▼────────┐
-         │ especialidad      │                 │ PROVEEDOR_MPN  │
-         │ activo (0..1)     │                 │ (Provider)     │
-         │ estado            │                 │                │
-         └───────────────────┘                 │ id_provider(PK)│
-                                             │ nombre         │
-                                             │ especialidad   │
-                                             │ mpn_code       │
-                                             │ lat, lng       │
-                                             └───────┬────────┘
-                                                     │ N:1
-                                             ┌───────▼────────┐
-                                             │ ESPECIALIDAD   │
-                                             │                │
-                                             │ id_specialty   │
-                                             │ nombre         │
-                                             │ categoria      │
-                                             └────────────────┘
+              ASEGURANZA
+         ┌──────────────┐
+         │  id_seguro   │
+         │  nombre      │
+         │  policy_num  │
+         └──────┬───────┘
+                │
+                │ 0..1 ─── DEFENSE ATTORNEY
+                │         (respalda en mayoria de casos)
+                │            ┌──────────────┐
+                │            │ id_attorney  │
+                │            │ nombre       │
+                │            │ firma        │
+                │            │ activo(0..1) │
+                │            └──────────────┘
+                │
+   codigo_aseguranza ──► RECLAMO
+              ┌──────────────┐
+              │  id_claim    │
+              │  tipo(WC/PI) │
+              │  fecha       │
+              │  estatus     │
+              └──────────────┘
+
+================================================================================
+NOTAS
+================================================================================
+
+- DEFENSE ATTORNEY: respalda a la ASEGURANZA en MAYORIA de casos
+  (no siempre, pero en la mayoria)
+- RECLAMO tiene codigo_aseguranza: codigo asignado por la aseguranza
+- Es un diagrama vivo - se agrega una entidad a la vez segun se explique
 
 ================================================================================
 NOTAS IMPORTANTES
