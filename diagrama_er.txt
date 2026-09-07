@@ -71,7 +71,10 @@ ENTIDAD 6: DOCTOR_FACILITY (RELACION DOCTOR-MPN LINK)
 - mpn_link_id       (FK - Referencia a MPN_LINK)
 - facility_name     (VARCHAR - Nombre de la facility/clinica)
 - facility_type     (VARCHAR - Clinica / Hospital / Centro)
-- body_part         (VARCHAR - Parte del cuerpo que trata)
+- body_part         (TEXT - Lista de partes del cuerpo que trata
+                       Ej: "Espalda, Rodilla" o "Cuello, Hombro, Muñeca"
+                       Puede variar por MPN link o rol:
+                       como QME puede evaluar otras partes del cuerpo)
 - rol_proveedor     (ENUM: PTP / STP / LIEN / QME / MTUS / OTRO)
   PTP = Primary Treatment Provider
   STP = Specialty Treatment Provider
