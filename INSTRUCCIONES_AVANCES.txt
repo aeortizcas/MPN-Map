@@ -40,24 +40,27 @@ Unidos, con las siguientes funcionalidades:
 - Leaflet.js (libreria de mapas, gratuita, sin API key necesaria)
 - OpenStreetMap como proveedor de tiles (gratuito)
 - OR alternativamente: Google Maps JavaScript API (requiere API key)
-- Busqueda: Leaflet Control Geocoder o Fuse.js para busqueda local
+- Busqueda: Nominatim (reverse geocoding)
 - Archivo GeoJSON de estados de EE.UU. para limites estatales
+- SQLite via sql.js (WebAssembly) para almacenamiento local de marcadores
+- Font Awesome para iconos
 
-Estructura de carpetas sugerida:
+Estructura de carpetas:
   MPN Map/
     index.html
-    css/
-      style.css
+    css/style.css
     js/
-      map.js
-      search.js
-      georef.js
-    data/
-      us-states.geojson
-      markers.json
+      map.js          - Mapa base, estados, marcadores, medicion de distancia
+      search.js       - Busqueda dual punto A/B, autocompletado, medir distancia
+      georef.js       - Geolocalizacion GPS, reverse geocoding, export/import JSON
+      db.js           - SQLite (sql.js), gestion de marcadores persistentes
     lib/
-      leaflet/ (libreria y css)
-    README.txt (este archivo)
+      leaflet/        - Leaflet.js + CSS + imagenes de marcadores
+      sql.js/         - sql-wasm.js + sql-wasm.wasm (SQLite WebAssembly)
+    data/
+      us-states.json  - Limites de estados
+      markers.db      - Base de datos SQLite (se crea automaticamente)
+    INSTRUCCIONES_AVANCES.txt
 
 ================================================================================
 3. PASOS DE IMPLEMENTACION
@@ -107,10 +110,26 @@ FASE 5 - FUNCIONALIDADES AVANZADAS
 [ ] FASE 2 - MAPA BASE Y NAVEGACION : COMPLETADO
 [x] FASE 3 - GEOREFERENCIACION      : COMPLETADO
 [x] FASE 4 - SISTEMA DE BUSQUEDA    : COMPLETADO
-[x] FASE 5 - FUNCIONALIDADES AVANZADAS: EN PROGRESO
+[x] FASE 5 - FUNCIONALIDADES AVANZADAS: COMPLETADO
 
-Archivos creados: 7 (index.html, style.css, map.js, search.js, georef.js, leaflet.js/css, us-states.json)
-Archivos modificados: INSTRUCCIONES_AVANCES.txt
+Archivos creados: 17
+  - index.html
+  - css/style.css
+  - js/map.js
+  - js/search.js
+  - js/georef.js
+  - js/db.js
+  - lib/leaflet/leaflet.css
+  - lib/leaflet/leaflet.js
+  - lib/leaflet/images/marker-icon.png
+  - lib/leaflet/images/marker-shadow.png
+  - lib/leaflet/images/marker-icon-2x.png
+  - lib/sql.js/sql-wasm.js
+  - lib/sql.js/sql-wasm.wasm
+  - data/us-states.json
+  - INSTRUCCIONES_AVANCES.txt
+
+Modificados: INSTRUCCIONES_AVANCES.txt
 
 ================================================================================
 5. CODIGO EJEMPLO - INICIO RAPIDO
@@ -159,10 +178,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 - Leaflet.js es gratuito y no requiere API key, ideal para proyectos personales
 - OpenStreetMap tiene limite de 100,000 solicitudes por dia (tile cache)
-- Para produccion, considerar un proveedor de tiles propio o pago
-- GeoJSON de estados de EE.UU. es pesado (~1-2MB comprimido)
+- sql.js (SQLite WebAssembly) almacena datos localmente en el navegador
 - La geolocalizacion del navegador requiere HTTPS en produccion
 - El reverse geocoding con Nominatim tiene tasa de 1 req/segundo
+- El archivo markers.db se crea automaticamente en data/ al primer uso
+- Los marcadores se guardan automaticamente en SQLite al agregarlos
+- El boton de importar DB permite cargar archivos .db personalizados
+- El panel de SQLite (boton purple abajo a la derecha) muestra todos los marcadores guardados
 
 ================================================================================
 FIN DEL DOCUMENTO
