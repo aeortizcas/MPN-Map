@@ -59,13 +59,24 @@ ENTIDAD 4: MPN_LINK (HIPERVINCULO DE RED DE PROVEEDORES)
 ENTIDAD 5: DOCTOR_MPN (PROVEEDOR MEDICO)
 -------------------------------------------------------------
 - id_doctor         (PK)
-- mpn_link_id       (FK - Referencia al MPN_LINK)
 - nombre            (VARCHAR - Nombre del doctor)
-- especialidad      (VARCHAR - Ej: Ortopedia, Neurologia, Quiropratica)
+- especialidad      (VARCHAR - Especialidad medica)
 - zipcode           (VARCHAR - Codigo postal de ubicacion)
 - telefono          (VARCHAR - Telefono de contacto)
-- tipo              (ENUM: PRIMARIO / SECUNDARIO)
-- lesiones          (TEXT - Tipos de lesiones que trata)
+
+ENTIDAD 6: DOCTOR_FACILITY (RELACION DOCTOR-MPN LINK)
+------------------------------------------------------------------
+- id_facility       (PK)
+- doctor_id         (FK - Referencia a DOCTOR_MPN)
+- mpn_link_id       (FK - Referencia a MPN_LINK)
+- facility_name     (VARCHAR - Nombre de la facility/clinica)
+- facility_type     (VARCHAR - Clinica / Hospital / Centro)
+- body_part         (VARCHAR - Parte del cuerpo que trata)
+- tipo_proveedor    (ENUM: PTP / STP / OTRO)
+  PTP = Primary Treatment Provider
+  STP = Specialty Treatment Provider
+  OTRO = No es PTP ni STP
+- estado            (VARCHAR - Activo/Inactivo en este link)
 
 ================================================================================
 RELACIONES CONFIRMADAS
@@ -78,52 +89,54 @@ ASEGURANZA es respaldada por DEFENSE ATTORNEY en MAYORIA de casos
 ASEGURANZA tiene MUCHOS MPN links (1:N)
   Cada RECLAMO tiene UN MPN link asignado (N:1)
   Card: ASEGURANZA(1) --- (N) MPN_LINK
-  Card: RECLAMO(1) --- (N) MPN_LINK (o N:1 dependiendo del modelo)
-  
-  NOTA: MPN_LINK es un hipervinculo que la aseguranza envia
-        Puede variar por caso
-        Una aseguranza puede tener varios MPN links para distintos casos
 
-MPN_LINK contiene MUCHOS DOCTORES_MPN (1:N)
-  Cada doctor tiene tipo PRIMARIO o SECUNDARIO
-  Cada doctor trata ciertas lesiones
-  Card: MPN_LINK(1) --- (N) DOCTOR_MPN
+MPN_LINK tiene MUCHOS DOCTORES y DOCTORES aparecen en MUCHOS MPN links (N:M)
+  El mismo doctor puede estar en varios MPN links con facilities distintas
+  Cada doctor-MPN_LINK trata ciertas partes del cuerpo
+  Cada doctor-MPN_LINK puede ser PTP, STP o OTRO
+  Card: MPN_LINK(N) --- (N) DOCTOR_MPN
+  Relacion intermedia: DOCTOR_FACILITY
+  PTP = Primary Treatment Provider
+  STP = Specialty Treatment Provider
+  OTRO = No es PTP ni STP
 
 ================================================================================
 DIAGRAMA VISUAL
 ================================================================================
 
-               ASEGURANZA ──1:N──► MPN_LINK
-           ┌──────────────┐     ┌──────────────┐
-           │  id_seguro   │     │  id_mpn_link │
-           │  nombre      │     │  url         │
-           │  policy_num  │     │  nombre      │
-           └──────┬───────┘     │  aseguranca_id│
-                  │             │  caso_assoc.  │
-                  │ 0..1 ───► DEFENSE ATTORNEY  │
-                  │                  ┌────────┴─────┐
-                  │                  │              │
-   codigo_asegura│                  │              │
-   ncia ──► RECLAMO │                  │              │
-           ┌──────────────┐         │              │
-           │  id_claim    │         └──────────────┘
-           │  tipo(WC/PI) │
-           │  fecha       │
-           │  estatus     │
-           │  mpn_link_id │
-           └──────────────┘
-
-                  ┌──────────────┐     ┌──────────────┐
-                  │ DOCTOR_MPN   │◄──N:1 MPN_LINK  │
-                  ├──────────────┤     ┌──────────────┐
-                  │ id_doctor(PK)│     │  id_mpn_link │
-                  │ nombre       │     └──────────────┘
-                  │ especialidad │
-                  │ zipcode      │
-                  │ telefono     │
-                  │ tipo(PRIM/SEC)│
-                  │ lesiones     │
-                  └──────────────┘
+               ASEGURANZA ──1:N──► MPN_LINK ──N:M──► DOCTOR_MPN
+           ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+           │  id_seguro   │     │  id_mpn_link │     │  id_doctor   │
+           │  nombre      │     │  url         │     │  nombre      │
+           │  policy_num  │     │  nombre      │     │  especialidad│
+           └──────┬───────┘     │  aseguranca_id│     │  zipcode     │
+                  │             │  caso_assoc.  │     │  telefono    │
+                  │ 0..1 ───► DEFENSE ATTORNEY  │     └──────┬───────┘
+                  │                  ┌────────┴─────┘            │
+                  │                  │                             │
+   codigo_asegura│                  │         ┌──────────────────┘
+   ncia ──► RECLAMO │                  │         │ N:M (junction)
+           ┌──────────────┐         │         │
+           │  id_claim    │         │         │
+           │  tipo(WC/PI) │         │         │
+           │  fecha       │         │         │
+           │  estatus     │         │         │
+           │  mpn_link_id │         │         │
+           └──────────────┘         │         │
+                                    │         │
+                                    ▼         │
+                           ┌──────────────────┘
+                           │  DOCTOR_FACILITY (junction)
+                           ├──────────────────────────┐
+                           │  id_facility (PK)        │
+                           │  doctor_id (FK)          │
+                           │  mpn_link_id (FK)        │
+                           │  facility_name           │
+                           │  facility_type           │
+                           │  body_part               │
+                           │  tipo_proveedor (PTP/STP/OTRO)│
+                           │  estado                  │
+                           └──────────────────────────┘
 
 ================================================================================
 NOTAS
@@ -133,8 +146,14 @@ NOTAS
   (no siempre, pero en la mayoria)
 - RECLAMO tiene codigo_aseguranza: codigo asignado por la aseguranza
 - Es un diagrama vivo - se agrega una entidad a la vez segun se explique
+- DOCTOR_FACILITY es una tabla de relacion N:M entre DOCTOR y MPN_LINK
+  El mismo doctor puede estar en varios MPN links con facility distinta
+  tipo_proveedor: PTP (Primary Treatment Provider), STP (Specialty Treatment Provider), o OTRO
+- PTP: doctor que atiende primero como provider primario
+- STP: doctor especialista para un caso particular
+- OTRO: no es ni PTP ni STP
 
 ================================================================================
 ARCHIVO: diagrama_er.txt
-VERSION: 3.0
+VERSION: 4.0
 ================================================================================
