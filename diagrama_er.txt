@@ -62,6 +62,8 @@ ENTIDAD 5: DOCTOR_MPN (PROVEEDOR MEDICO)
 - nombre            (VARCHAR - Nombre del doctor)
 - especialidad      (VARCHAR - Especialidad medica)
 - zipcode           (VARCHAR - Codigo postal de ubicacion)
+- lat               (DECIMAL - Latitud para mapa)
+- lng               (DECIMAL - Longitud para mapa)
 - telefono          (VARCHAR - Telefono de contacto)
 
 ENTIDAD 6: DOCTOR_FACILITY (RELACION DOCTOR-MPN LINK)
@@ -108,6 +110,22 @@ MPN_LINK tiene MUCHOS DOCTORES y DOCTORES aparecen en MUCHOS MPN links (N:M)
     OTRO = Ninguno de los anteriores
   Card: MPN_LINK(N) --- (N) DOCTOR_MPN
   Relacion intermedia: DOCTOR_FACILITY
+
+================================================================================
+INTEGRACION CON EL MAPA
+================================================================================
+
+El mapa muestra DOCTORES cerca del cliente/reclamante:
+- DOCTOR_MPN tiene lat/lng para ubicacion en mapa
+- DOCTOR_MPN tiene zipcode para filtrar por area
+- El cliente puede buscar doctores cercanos a su ubicacion
+- El mapa puede filtrar por:
+  * Especialidad
+  * Parte del cuerpo tratada
+  * Rol (PTP/STP/QME/LIEN)
+  * Distancia al cliente
+- El doctor debe estar cerca del cliente para atencion
+- MPN_LINK (hipervinculo) se muestra en el mapa como punto de referencia
 
 ================================================================================
 DIAGRAMA VISUAL
@@ -166,5 +184,15 @@ NOTAS
 
 ================================================================================
 ARCHIVO: diagrama_er.txt
-VERSION: 5.0
+VERSION: 6.0
+===============================================================================
+NOTAS FINALES
+================================================================================
+
+El mapa integra DOCTORES cerca del cliente:
+- DOCTOR_MPN.tiene lat/lng para geolocalizacion en mapa
+- El cliente puede buscar doctores por distancia, zipcode, especialidad
+- MPN_LINK se muestra como punto de referencia en el mapa
+- Cada doctor puede estar en varios MPN links (N:M) con different facilities
+- Filtros del mapa: especialidad, body_part, rol (PTP/STP/QME/LIEN), distancia
 ================================================================================
