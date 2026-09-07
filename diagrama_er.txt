@@ -72,10 +72,13 @@ ENTIDAD 6: DOCTOR_FACILITY (RELACION DOCTOR-MPN LINK)
 - facility_name     (VARCHAR - Nombre de la facility/clinica)
 - facility_type     (VARCHAR - Clinica / Hospital / Centro)
 - body_part         (VARCHAR - Parte del cuerpo que trata)
-- tipo_proveedor    (ENUM: PTP / STP / OTRO)
+- rol_proveedor     (ENUM: PTP / STP / LIEN / QME / MTUS / OTRO)
   PTP = Primary Treatment Provider
   STP = Specialty Treatment Provider
-  OTRO = No es PTP ni STP
+  LIEN = Lien Basis (pago del acuerdo/settlement)
+  QME = Qualified Medical Evaluator (evaluador medico calificado)
+  MTUS = Medical Treatment Utilization Schedule (proveedor regular aprobado)
+  OTRO = No es ninguno de los anteriores
 - estado            (VARCHAR - Activo/Inactivo en este link)
 
 ================================================================================
@@ -93,12 +96,15 @@ ASEGURANZA tiene MUCHOS MPN links (1:N)
 MPN_LINK tiene MUCHOS DOCTORES y DOCTORES aparecen en MUCHOS MPN links (N:M)
   El mismo doctor puede estar en varios MPN links con facilities distintas
   Cada doctor-MPN_LINK trata ciertas partes del cuerpo
-  Cada doctor-MPN_LINK puede ser PTP, STP o OTRO
+  El doctor puede tener diferentes roles segun el link:
+    PTP = Primary Treatment Provider
+    STP = Specialty Treatment Provider
+    LIEN = Lien Basis (pago del settlement)
+    QME = Qualified Medical Evaluator
+    MTUS = Medical Treatment Utilization Schedule
+    OTRO = Ninguno de los anteriores
   Card: MPN_LINK(N) --- (N) DOCTOR_MPN
   Relacion intermedia: DOCTOR_FACILITY
-  PTP = Primary Treatment Provider
-  STP = Specialty Treatment Provider
-  OTRO = No es PTP ni STP
 
 ================================================================================
 DIAGRAMA VISUAL
@@ -112,31 +118,33 @@ DIAGRAMA VISUAL
            └──────┬───────┘     │  aseguranca_id│     │  zipcode     │
                   │             │  caso_assoc.  │     │  telefono    │
                   │ 0..1 ───► DEFENSE ATTORNEY  │     └──────┬───────┘
-                  │                  ┌────────┴─────┘            │
-                  │                  │                             │
-   codigo_asegura│                  │         ┌──────────────────┘
-   ncia ──► RECLAMO │                  │         │ N:M (junction)
-           ┌──────────────┐         │         │
-           │  id_claim    │         │         │
-           │  tipo(WC/PI) │         │         │
-           │  fecha       │         │         │
-           │  estatus     │         │         │
-           │  mpn_link_id │         │         │
-           └──────────────┘         │         │
-                                    │         │
-                                    ▼         │
-                           ┌──────────────────┘
-                           │  DOCTOR_FACILITY (junction)
-                           ├──────────────────────────┐
-                           │  id_facility (PK)        │
-                           │  doctor_id (FK)          │
-                           │  mpn_link_id (FK)        │
-                           │  facility_name           │
-                           │  facility_type           │
-                           │  body_part               │
-                           │  tipo_proveedor (PTP/STP/OTRO)│
-                           │  estado                  │
-                           └──────────────────────────┘
+                  │                  ┌────────┴─────┐            │
+                  │                  │              │            │
+   codigo_asegura│                  │              │            │
+   ncia ──► RECLAMO │                  │              │            │
+           ┌──────────────┐         │              │            │
+           │  id_claim    │         │              │            │
+           │  tipo(WC/PI) │         │              │            │
+           │  fecha       │         │              │            │
+           │  estatus     │         │              │            │
+           │  mpn_link_id │         │              │            │
+           └──────────────┘         │              │            │
+                                    │              │            │
+                                    ▼              ▼            │
+                           ┌──────────────────────────────┐       │
+                           │   DOCTOR_FACILITY (junction) │◄──────┘
+                           ├──────────────────────────────┤
+                           │  id_facility (PK)            │
+                           │  doctor_id (FK)              │
+                           │  mpn_link_id (FK)            │
+                           │  facility_name               │
+                           │  facility_type               │
+                           │  body_part                   │
+                           │  rol_proveedor               │
+                           │    PTP / STP / LIEN / QME    │
+                           │    / MTUS / OTRO             │
+                           │  estado                      │
+                           └──────────────────────────────┘
 
 ================================================================================
 NOTAS
@@ -155,5 +163,5 @@ NOTAS
 
 ================================================================================
 ARCHIVO: diagrama_er.txt
-VERSION: 4.0
+VERSION: 5.0
 ================================================================================
