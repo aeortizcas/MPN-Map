@@ -3,64 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MPN Map - Mapa de Estados Unidos</title>
+    <title>MPN Map - Workers Comp / PI</title>
     <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
-    <div id="header">
-        <div id="logo">
-            <i class="fas fa-map-marked-alt"></i>
-            <span>MPN Map</span>
-        </div>
-        <div id="search-container">
-            <div id="dual-search">
-                <input type="text" id="search-a" placeholder="Buscar punto A (ciudad o direccion)..." />
-                <input type="text" id="search-b" placeholder="Buscar punto B (ciudad o direccion)..." />
-                <button id="btn-measure"><i class="fas fa-ruler"></i> Medir</button>
-                <button id="search-btn"><i class="fas fa-search"></i></button>
-                <div id="search-results"></div>
+    <div id="app">
+        <div id="sidebar">
+            <div id="sidebar-header">
+                <i class="fas fa-briefcase"></i>
+                <div>
+                    <h1>MPN Map</h1>
+                    <span>Workers Comp / PI</span>
+                </div>
+            </div>
+            <div id="sidebar-search">
+                <input type="text" id="global-search" placeholder="Buscar..." />
+            </div>
+            <nav id="sidebar-nav">
+                <button class="nav-btn active" data-tab="dashboard">
+                    <i class="fas fa-chart-pie"></i> Dashboard
+                </button>
+                <button class="nav-btn" data-tab="aseguranza">
+                    <i class="fas fa-shield-halved"></i> Aseguranzas
+                </button>
+                <button class="nav-btn" data-tab="mpnlink">
+                    <i class="fas fa-link"></i> MPN Links
+                </button>
+                <button class="nav-btn" data-tab="doctor">
+                    <i class="fas fa-user-doctor"></i> Doctores
+                </button>
+                <button class="nav-btn" data-tab="reclamo">
+                    <i class="fas fa-file-medical"></i> Reclamos
+                </button>
+                <button class="nav-btn" data-tab="attorney">
+                    <i class="fas fa-scale-balanced"></i> Defense Atty
+                </button>
+                <button class="nav-btn" data-tab="mapview">
+                    <i class="fas fa-map"></i> Ver Mapa
+                </button>
+            </nav>
+            <div id="sidebar-footer">
+                <span id="sidebar-count">0 registros</span>
             </div>
         </div>
-        <div id="controls">
-            <button id="btn-distance" title="Medir distancia"><i class="fas fa-ruler"></i></button>
-            <button id="btn-geolocate" title="Mi ubicacion"><i class="fas fa-location-crosshairs"></i></button>
-            <button id="btn-zoom-in" title="Zoom +"><i class="fas fa-plus"></i></button>
-            <button id="btn-zoom-out" title="Zoom -"><i class="fas fa-minus"></i></button>
-            <button id="btn-reset" title="Restablecer vista"><i class="fas fa-expand"></i></button>
-        </div>
-    </div>
-    <div id="map"></div>
-    <div id="info-panel">
-        <span id="coords">Lat: 0.00, Lng: 0.00 | Zoom: 4</span>
-        <span id="state-info"></span>
-    </div>
-    <div id="measure-result"></div>
-    <div id="sqlite-panel">
-        <div id="sqlite-header">
-            <span><i class="fas fa-database"></i> SQLite</span>
-            <button id="btn-close-sqlite"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="sqlite-body">
-            <div id="sqlite-info">
-                <span id="marker-count">0 marcadores guardados</span>
+
+        <div id="main-content">
+            <div id="toolbar">
+                <button id="btn-toggle-sidebar" title="Ocultar/Mostrar sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div id="toolbar-info">
+                    <span id="coords">Lat: 0.00, Lng: 0.00 | Zoom: 4</span>
+                </div>
+                <div id="toolbar-actions">
+                    <button id="btn-geolocate" title="Mi ubicacion"><i class="fas fa-location-crosshairs"></i></button>
+                    <button id="btn-zoom-in" title="Zoom +"><i class="fas fa-plus"></i></button>
+                    <button id="btn-zoom-out" title="Zoom -"><i class="fas fa-minus"></i></button>
+                    <button id="btn-reset" title="Restablecer vista"><i class="fas fa-expand"></i></button>
+                </div>
             </div>
-            <div id="sqlite-buttons">
-                <button id="btn-load-sqlite" title="Cargar marcadores"><i class="fas fa-download"></i> Cargar</button>
-                <button id="btn-clear-sqlite" title="Borrar todo"><i class="fas fa-trash"></i> Borrar</button>
-                <button id="btn-export-sqlite" title="Exportar DB"><i class="fas fa-file-export"></i> Exportar</button>
+            <div id="map"></div>
+        </div>
+
+        <div id="sidebar-panel">
+            <div id="panel-header">
+                <h2 id="panel-title">Dashboard</h2>
+                <button id="btn-close-panel"><i class="fas fa-times"></i></button>
             </div>
-            <div id="sqlite-markers-list"></div>
+            <div id="panel-body">
+                <div id="panel-content"></div>
+            </div>
         </div>
     </div>
-    <button id="btn-open-sqlite" title="Base de datos SQLite"><i class="fas fa-database"></i></button>
+
+    <div id="toast-container"></div>
 
     <script src="lib/sql.js/sql-wasm.js"></script>
     <script src="lib/leaflet/leaflet.js"></script>
-    <script src="js/map.js"></script>
-    <script src="js/search.js"></script>
-    <script src="js/georef.js"></script>
     <script src="js/db.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/sidebar.js"></script>
 </body>
 </html>
