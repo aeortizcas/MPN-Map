@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPN Map - Mapa de Estados Unidos</title>
+    <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+    <div id="header">
+        <div id="logo">
+            <i class="fas fa-map-marked-alt"></i>
+            <span>MPN Map</span>
+        </div>
+        <div id="search-container">
+            <div id="dual-search">
+                <input type="text" id="search-a" placeholder="Buscar punto A (ciudad o direccion)..." />
+                <input type="text" id="search-b" placeholder="Buscar punto B (ciudad o direccion)..." />
+                <button id="btn-measure"><i class="fas fa-ruler"></i> Medir</button>
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+                <div id="search-results"></div>
+            </div>
+        </div>
+        <div id="controls">
+            <button id="btn-distance" title="Medir distancia"><i class="fas fa-ruler"></i></button>
+            <button id="btn-geolocate" title="Mi ubicacion"><i class="fas fa-location-crosshairs"></i></button>
+            <button id="btn-zoom-in" title="Zoom +"><i class="fas fa-plus"></i></button>
+            <button id="btn-zoom-out" title="Zoom -"><i class="fas fa-minus"></i></button>
+            <button id="btn-reset" title="Restablecer vista"><i class="fas fa-expand"></i></button>
+        </div>
+    </div>
+    <div id="map"></div>
+    <div id="info-panel">
+        <span id="coords">Lat: 0.00, Lng: 0.00 | Zoom: 4</span>
+        <span id="state-info"></span>
+    </div>
+    <div id="measure-result"></div>
+
+    <script src="lib/leaflet/leaflet.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/georef.js"></script>
+</body>
+</html>
