@@ -56,6 +56,17 @@ ENTIDAD 4: MPN_LINK (HIPERVINCULO DE RED DE PROVEEDORES)
 - aseguranca_id     (FK - Referencia a ASEGURANZA)
 - caso_asociado     (VARCHAR - Referencia al caso/reclamo)
 
+ENTIDAD 5: DOCTOR_MPN (PROVEEDOR MEDICO)
+-------------------------------------------------------------
+- id_doctor         (PK)
+- mpn_link_id       (FK - Referencia al MPN_LINK)
+- nombre            (VARCHAR - Nombre del doctor)
+- especialidad      (VARCHAR - Ej: Ortopedia, Neurologia, Quiropratica)
+- zipcode           (VARCHAR - Codigo postal de ubicacion)
+- telefono          (VARCHAR - Telefono de contacto)
+- tipo              (ENUM: PRIMARIO / SECUNDARIO)
+- lesiones          (TEXT - Tipos de lesiones que trata)
+
 ================================================================================
 RELACIONES CONFIRMADAS
 ================================================================================
@@ -73,29 +84,46 @@ ASEGURANZA tiene MUCHOS MPN links (1:N)
         Puede variar por caso
         Una aseguranza puede tener varios MPN links para distintos casos
 
+MPN_LINK contiene MUCHOS DOCTORES_MPN (1:N)
+  Cada doctor tiene tipo PRIMARIO o SECUNDARIO
+  Cada doctor trata ciertas lesiones
+  Card: MPN_LINK(1) --- (N) DOCTOR_MPN
+
 ================================================================================
 DIAGRAMA VISUAL
 ================================================================================
 
                ASEGURANZA ──1:N──► MPN_LINK
-          ┌──────────────┐     ┌──────────────┐
-          │  id_seguro   │     │  id_mpn_link │
-          │  nombre      │     │  url         │
-          │  policy_num  │     │  nombre      │
-          └──────┬───────┘     │  aseguranca_id│
-                 │             │  caso_assoc.  │
-                 │ 0..1 ───► DEFENSE ATTORNEY  │
-                 │                  ┌────────┴─────┐
-                 │                  │              │
+           ┌──────────────┐     ┌──────────────┐
+           │  id_seguro   │     │  id_mpn_link │
+           │  nombre      │     │  url         │
+           │  policy_num  │     │  nombre      │
+           └──────┬───────┘     │  aseguranca_id│
+                  │             │  caso_assoc.  │
+                  │ 0..1 ───► DEFENSE ATTORNEY  │
+                  │                  ┌────────┴─────┐
+                  │                  │              │
    codigo_asegura│                  │              │
-   ncia ──► RECLAMO │              │              │
-          ┌──────────────┐         │              │
-          │  id_claim    │         └──────────────┘
-          │  tipo(WC/PI) │
-          │  fecha       │
-          │  estatus     │
-          │  mpn_link_id │
-          └──────────────┘
+   ncia ──► RECLAMO │                  │              │
+           ┌──────────────┐         │              │
+           │  id_claim    │         └──────────────┘
+           │  tipo(WC/PI) │
+           │  fecha       │
+           │  estatus     │
+           │  mpn_link_id │
+           └──────────────┘
+
+                  ┌──────────────┐     ┌──────────────┐
+                  │ DOCTOR_MPN   │◄──N:1 MPN_LINK  │
+                  ├──────────────┤     ┌──────────────┐
+                  │ id_doctor(PK)│     │  id_mpn_link │
+                  │ nombre       │     └──────────────┘
+                  │ especialidad │
+                  │ zipcode      │
+                  │ telefono     │
+                  │ tipo(PRIM/SEC)│
+                  │ lesiones     │
+                  └──────────────┘
 
 ================================================================================
 NOTAS
@@ -108,5 +136,5 @@ NOTAS
 
 ================================================================================
 ARCHIVO: diagrama_er.txt
-VERSION: 2.0
+VERSION: 3.0
 ================================================================================
