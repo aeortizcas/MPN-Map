@@ -7,6 +7,98 @@
     <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        .fb-panel-wide {
+            width: 420px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .fb-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #0f3460;
+            padding-bottom: 0;
+        }
+        .fb-tab {
+            padding: 6px 10px;
+            background: #0f3460;
+            color: #aaa;
+            border: none;
+            cursor: pointer;
+            font-size: 10px;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.2s;
+        }
+        .fb-tab:hover { color: #fff; background: #1a4a7a; }
+        .fb-tab.active { background: #e94560; color: #fff; }
+        .fb-content { display: none; }
+        .fb-content.active { display: block; }
+        .fb-section {
+            background: #0f1a2e;
+            border: 1px solid #0f3460;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        .fb-section h4 {
+            color: #e94560;
+            margin: 0 0 8px 0;
+            font-size: 12px;
+        }
+        .fb-form-row {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+        .fb-form-row input, .fb-form-row select {
+            flex: 1;
+            padding: 5px;
+            background: #1a1a2e;
+            border: 1px solid #0f3460;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 11px;
+        }
+        .fb-btn-row {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+        }
+        .fb-btn-row button {
+            flex: 1;
+            padding: 6px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .btn-fb-primary { background: #e94560; color: #fff; }
+        .btn-fb-secondary { background: #0f3460; color: #fff; }
+        .btn-fb-green { background: #2ecc71; color: #fff; }
+        .btn-fb-red { background: #e74c3c; color: #fff; }
+        .fb-list-item {
+            background: #0f3460;
+            padding: 6px;
+            margin-bottom: 3px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 11px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .fb-list-item:hover { background: #1a4a7a; }
+        .fb-seed-row {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .fb-seed-row button { flex: 1; }
+    </style>
 </head>
 <body>
     <div id="header">
@@ -40,35 +132,145 @@
     </div>
     <div id="measure-result"></div>
 
-    <div id="firebase-panel" style="display:none;position:fixed;top:60px;right:10px;width:350px;background:#1a1a2e;border:2px solid #e94560;border-radius:10px;z-index:2000;padding:15px;box-shadow:0 5px 25px rgba(0,0,0,0.5);">
-        <h3 style="color:#e94560;margin-bottom:10px;"><i class="fas fa-fire"></i> Firebase</h3>
-        <div id="firebase-connection" style="color:#aaa;font-size:12px;margin-bottom:10px;">No conectado</div>
-        <div class="btn-row" style="margin-bottom:10px;">
-            <button class="btn-primary" onclick="FIREBASE.connect()" style="flex:1;font-size:11px;padding:6px;">Conectar</button>
-            <button class="btn-secondary" onclick="FIREBASE.disconnect()" style="flex:1;font-size:11px;padding:6px;">Desconectar</button>
+    <div id="firebase-panel" class="fb-panel-wide" style="display:none;position:fixed;top:55px;right:10px;background:#1a1a2e;border:2px solid #e94560;border-radius:10px;z-index:2000;padding:15px;box-shadow:0 5px 25px rgba(0,0,0,0.5);">
+        <h3 style="color:#e94560;margin-bottom:10px;"><i class="fas fa-fire"></i> MPN Firebase <span id="firebase-connection" style="color:#aaa;font-size:11px;margin-left:8px;">No conectado</span></h3>
+        <div class="fb-btn-row" style="margin-bottom:10px;">
+            <button class="btn-fb-primary" onclick="FIREBASE.connect()">Conectar</button>
+            <button class="btn-fb-secondary" onclick="FIREBASE.disconnect()">Desconectar</button>
+            <button class="btn-fb-green" onclick="FIREBASE.seedSampleData()" title="Cargar datos de ejemplo">🌱 Seed</button>
+            <button class="btn-fb-red" onclick="FIREBASE.clearAll()" title="Eliminar todos los datos">🗑️ Clear</button>
         </div>
-        <div class="panel-section">
-            <h4 style="color:#aaa;font-size:12px;margin-bottom:8px;">Guardar Marcador en Firebase</h4>
-            <div class="form-group">
-                <input type="text" id="fb-nombre" placeholder="Nombre del marcador..." style="width:100%;padding:6px;background:#0f1a2e;border:1px solid #0f3460;border-radius:4px;color:#fff;font-size:12px;" />
-            </div>
-            <div class="form-group">
-                <input type="text" id="fb-lat" placeholder="Latitud..." style="width:100%;padding:6px;background:#0f1a2e;border:1px solid #0f3460;border-radius:4px;color:#fff;font-size:12px;" />
-            </div>
-            <div class="form-group">
-                <input type="text" id="fb-lng" placeholder="Longitud..." style="width:100%;padding:6px;background:#0f1a2e;border:1px solid #0f3460;border-radius:4px;color:#fff;font-size:12px;" />
-            </div>
-            <div class="form-group">
-                <input type="text" id="fb-address" placeholder="Direccion..." style="width:100%;padding:6px;background:#0f1a2e;border:1px solid #0f3460;border-radius:4px;color:#fff;font-size:12px;" />
-            </div>
-            <button class="btn-primary" onclick="FIREBASE.saveMarker()" style="font-size:11px;padding:6px;">Guardar en Firebase</button>
+
+        <div class="fb-tabs">
+            <button class="fb-tab active" data-tab="claims" onclick="FIREBASE.switchTab('claims')"><i class="fas fa-file-medical"></i> Claims</button>
+            <button class="fb-tab" data-tab="insurance" onclick="FIREBASE.switchTab('insurance')"><i class="fas fa-shield"></i> Seguros</button>
+            <button class="fb-tab" data-tab="attorneys" onclick="FIREBASE.switchTab('attorneys')"><i class="fas fa-balance-scale"></i> Abogados</button>
+            <button class="fb-tab" data-tab="mpn-links" onclick="FIREBASE.switchTab('mpn-links')"><i class="fas fa-link"></i> MPN Links</button>
+            <button class="fb-tab" data-tab="doctors" onclick="FIREBASE.switchTab('doctors')"><i class="fas fa-user-doctor"></i> Doctores</button>
+            <button class="fb-tab" data-tab="facilities" onclick="FIREBASE.switchTab('facilities')"><i class="fas fa-hospital"></i> Facilities</button>
         </div>
-        <div class="panel-section">
-            <h4 style="color:#aaa;font-size:12px;margin-bottom:8px;">Marcadores en Firebase</h4>
-            <div id="fb-markers-list" style="max-height:200px;overflow-y:auto;"></div>
-            <button class="btn-secondary" onclick="FIREBASE.loadMarkers()" style="font-size:11px;padding:6px;margin-top:5px;width:100%;">Cargar Todos</button>
+
+        <!-- CLAIMS -->
+        <div id="fb-claims" class="fb-content active">
+            <div class="fb-section">
+                <h4><i class="fas fa-plus-circle"></i> Nuevo Reclamo</h4>
+                <div class="fb-form-row"><input type="text" id="fb-claim-code" placeholder="Codigo de seguro" /></div>
+                <div class="fb-form-row">
+                    <select id="fb-claim-type"><option value="Workers Comp">Workers Comp</option><option value="PI">PI</option></select>
+                    <select id="fb-claim-status"><option value="Abierto">Abierto</option><option value="Cerrado">Cerrado</option><option value="En proceso">En proceso</option></select>
+                </div>
+                <div class="fb-form-row">
+                    <input type="date" id="fb-claim-fecha-reclamo" />
+                    <input type="date" id="fb-claim-fecha-lesion" />
+                </div>
+                <div class="fb-form-row"><input type="text" id="fb-claim-desc" placeholder="Descripcion" /></div>
+                <div class="fb-form-row">
+                    <select id="fb-claim-mpn"><option value="">Sin MPN link</option></select>
+                </div>
+                <div class="fb-btn-row"><button class="btn-fb-primary" onclick="FIREBASE.saveClaim()">Guardar Claim</button></div>
+            </div>
+            <div id="fb-claims-list" style="max-height:200px;overflow-y:auto;"></div>
         </div>
-        <button id="btn-close-firebase" onclick="FIREBASE.togglePanel()" style="position:absolute;top:8px;right:12px;background:none;border:none;color:#aaa;cursor:pointer;font-size:16px;"><i class="fas fa-times"></i></button>
+
+        <!-- INSURANCE -->
+        <div id="fb-insurance" class="fb-content">
+            <div class="fb-section">
+                <h4><i class="fas fa-plus-circle"></i> Nueva Aseguranza</h4>
+                <div class="fb-form-row"><input type="text" id="fb-ins-name" placeholder="Nombre" /></div>
+                <div class="fb-form-row"><input type="text" id="fb-ins-policy" placeholder="Policy Number" /></div>
+                <div class="fb-form-row">
+                    <input type="text" id="fb-ins-phone" placeholder="Telefono" />
+                    <input type="text" id="fb-ins-email" placeholder="Email" />
+                </div>
+                <div class="fb-form-row">
+                    <input type="text" id="fb-ins-address" placeholder="Direccion" />
+                    <input type="text" id="fb-ins-state" placeholder="Estado" />
+                </div>
+                <div class="fb-btn-row"><button class="btn-fb-primary" onclick="FIREBASE.saveInsurance()">Guardar</button></div>
+            </div>
+            <div id="fb-insurance-list" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+
+        <!-- ATTORNEYS -->
+        <div id="fb-attorneys" class="fb-content">
+            <div class="fb-section">
+                <h4><i class="fas fa-plus-circle"></i> Nuevo Abogado</h4>
+                <div class="fb-form-row"><input type="text" id="fb-att-name" placeholder="Nombre completo" /></div>
+                <div class="fb-form-row"><input type="text" id="fb-att-firma" placeholder="Firma" /></div>
+                <div class="fb-form-row">
+                    <input type="text" id="fb-att-especialidad" placeholder="Especialidad" />
+                    <select id="fb-att-activo"><option value="true">Activo</option><option value="false">Inactivo</option></select>
+                </div>
+                <div class="fb-form-row">
+                    <input type="text" id="fb-att-phone" placeholder="Telefono" />
+                    <input type="text" id="fb-att-email" placeholder="Email" />
+                </div>
+                <div class="fb-form-row">
+                    <input type="text" id="fb-att-address" placeholder="Direccion" />
+                    <input type="text" id="fb-att-state" placeholder="Estado" />
+                </div>
+                <div class="fb-btn-row"><button class="btn-fb-primary" onclick="FIREBASE.saveAttorney()">Guardar</button></div>
+            </div>
+            <div id="fb-attorneys-list" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+
+        <!-- MPN LINKS -->
+        <div id="fb-mpn-links" class="fb-content">
+            <div class="fb-section">
+                <h4><i class="fas fa-plus-circle"></i> Nuevo MPN Link</h4>
+                <div class="fb-form-row"><input type="text" id="fb-mpn-name" placeholder="Nombre del link" /></div>
+                <div class="fb-form-row"><input type="text" id="fb-mpn-url" placeholder="URL del MPN" /></div>
+                <div class="fb-form-row"><input type="text" id="fb-mpn-caso" placeholder="Caso asociado" /></div>
+                <div class="fb-form-row">
+                    <select id="fb-mpn-insurance"><option value="">Sin aseguranza</option></select>
+                </div>
+                <div class="fb-btn-row"><button class="btn-fb-primary" onclick="FIREBASE.saveMPNLink()">Guardar</button></div>
+            </div>
+            <div id="fb-mpn-list" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+
+        <!-- DOCTORS -->
+        <div id="fb-doctors" class="fb-content">
+            <div class="fb-section">
+                <h4><i class="fas fa-plus-circle"></i> Nuevo Doctor</h4>
+                <div class="fb-form-row"><input type="text" id="fb-doc-name" placeholder="Nombre" /></div>
+                <div class="fb-form-row"><input type="text" id="fb-doc-especialidad" placeholder="Especialidad" /></div>
+                <div class="fb-form-row">
+                    <input type="text" id="fb-doc-zip" placeholder="Zipcode" />
+                    <input type="text" id="fb-doc-phone" placeholder="Telefono" />
+                </div>
+                <div class="fb-form-row">
+                    <input type="text" id="fb-doc-lat" placeholder="Latitud" />
+                    <input type="text" id="fb-doc-lng" placeholder="Longitud" />
+                </div>
+                <div class="fb-btn-row"><button class="btn-fb-primary" onclick="FIREBASE.saveDoctor()">Guardar</button></div>
+            </div>
+            <div id="fb-doctors-list" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+
+        <!-- FACILITIES -->
+        <div id="fb-facilities" class="fb-content">
+            <div class="fb-section">
+                <h4><i class="fas fa-plus-circle"></i> Nueva Facility (Relacion Doctor-MPN)</h4>
+                <div class="fb-form-row">
+                    <select id="fb-fac-doctor"><option value="">Seleccionar doctor</option></select>
+                    <select id="fb-fac-mpn"><option value="">Seleccionar MPN</option></select>
+                </div>
+                <div class="fb-form-row"><input type="text" id="fb-fac-name" placeholder="Nombre de facility" /></div>
+                <div class="fb-form-row">
+                    <select id="fb-fac-type"><option value="Clinica">Clinica</option><option value="Hospital">Hospital</option><option value="Centro">Centro</option></select>
+                    <select id="fb-fac-rol"><option value="PTP">PTP</option><option value="STP">STP</option><option value="LIEN">LIEN</option><option value="QME">QME</option><option value="MTUS">MTUS</option><option value="OTRO">OTRO</option></select>
+                </div>
+                <div class="fb-form-row"><input type="text" id="fb-fac-body" placeholder="Partes del cuerpo (ej: Espalda, Rodilla)" /></div>
+                <div class="fb-form-row">
+                    <select id="fb-fac-estado"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select>
+                </div>
+                <div class="fb-btn-row"><button class="btn-fb-primary" onclick="FIREBASE.saveFacility()">Guardar</button></div>
+            </div>
+            <div id="fb-facilities-list" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
+
+        <button id="btn-close-firebase" onclick="FIREBASE.togglePanel()" style="position:absolute;top:8px;right:12px;background:none;border:none;color:#aaa;cursor:pointer;font-size:16px;z-index:2001;"><i class="fas fa-times"></i></button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -78,5 +280,6 @@
     <script src="js/search.js"></script>
     <script src="js/georef.js"></script>
     <script src="js/firebase.js"></script>
+    <script src="js/firebase-ui.js"></script>
 </body>
 </html>

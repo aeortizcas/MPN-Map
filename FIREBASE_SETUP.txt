@@ -81,51 +81,98 @@ const FIREBASE_CONFIG = {
 };
 
 PASO 5: VERIFICAR QUE FUNCIONA
-================================
+ ================================
 
-1. Abre el navegador
-2. Ve a http://localhost:8080/landing.html (o donde tengas el servidor)
-3. En la barra superior veras: 🔴 Firebase
-4. Haz clic en el boton de base de datos (icono 📊 arriba a la derecha)
-5. Haz clic en "Conectar"
-6. Deberia cambiar a: 🟢 Conectado
-7. Guarda un marcador y verifica en Firebase Console > Realtime Database
+ 1. Abre el navegador
+ 2. Ve a http://localhost:8080/mapa.html (o donde tengas el servidor)
+ 3. En la barra superior veras: 🔴 Firebase
+ 4. Haz clic en el boton de base de datos (icono 📊 arriba a la derecha)
+ 5. Haz clic en "Conectar"
+ 6. Deberia cambiar a: 🟢 Conectado
+ 7. Haz clic en el boton "🌱 Seed" para cargar datos de ejemplo
+ 8. Verifica en Firebase Console > Realtime Database
 
-ESTRUCTURA DE DATOS EN FIREBASE:
-==================================
+ ESTRUCTURA DE DATOS EN FIREBASE (SCHEMA COMPLETO):
+ =======================================================
 
-marcadores/
-    ├── unique_id_1/
-    │   ├── nombre: "Doctor Juan"
-    │   ├── lat: 39.8283
-    │   ├── lng: -98.5795
-    │   ├── address: "123 Main St"
-    │   ├── fecha: 1694123456789
-    │   └── usuario: "local"
-    ├── unique_id_2/
-    │   ├── ...
-    └── ...
+ claims/
+     ├── claim_001/
+     │   ├── codigo_aseguranza: "WC-2026-001"
+     │   ├── tipo: "Workers Comp" / "PI"
+     │   ├── fecha_reclamo: "2026-01-15"
+     │   ├── fecha_lesion: "2025-12-01"
+     │   ├── descripcion: "..."
+     │   ├── estatus: "Abierto" / "Cerrado" / "En proceso"
+     │   ├── mpn_link_id: "mpn_001" (FK)
+     │   └── fecha_creacion: 1694123456789
+ insurance/
+     ├── ins_001/
+     │   ├── nombre: "State Farm"
+     │   ├── policy_number: "SF-123456"
+     │   ├── telefono: "(555) 123-4567"
+     │   ├── email: "statefarm@example.com"
+     │   ├── direccion: "123 Main St"
+     │   └── estado: "CA"
+ attorneys/
+     ├── att_001/
+     │   ├── nombre: "John Smith"
+     │   ├── firma: "Smith & Associates"
+     │   ├── especialidad: "Workers Comp"
+     │   ├── telefono: "(555) 111-1111"
+     │   ├── email: "john@smith.com"
+     │   ├── direccion: "789 Oak Ave"
+     │   ├── estado: "CA"
+     │   └── activo: true
+ mpn_links/
+     ├── mpn_001/
+     │   ├── url: "https://mpn1.example.com"
+     │   ├── nombre: "MPN Red de California"
+     │   ├── aseguranca_id: "ins_001" (FK)
+     │   └── caso_asociado: "claim_001"
+ doctors/
+     ├── doc_001/
+     │   ├── nombre: "Dr. James Wilson"
+     │   ├── especialidad: "Ortopedia"
+     │   ├── zipcode: "90210"
+     │   ├── lat: 34.0901
+     │   ├── lng: -118.4065
+     │   └── telefono: "(555) 333-3333"
+ doctor_facilities/
+     ├── fac_001/
+     │   ├── doctor_id: "doc_001" (FK)
+     │   ├── mpn_link_id: "mpn_001" (FK)
+     │   ├── facility_name: "Wilson Ortho Clinic"
+     │   ├── facility_type: "Clinica"
+     │   ├── body_part: "Espalda, Rodilla"
+     │   ├── rol_proveedor: "PTP" / "STP" / "LIEN" / "QME" / "MTUS" / "OTRO"
+     │   └── estado: "Activo" / "Inactivo"
 
-FUNCIONALIDADES:
-===============
+ FUNCIONALIDADES:
+ ===============
 
-1. CONECTAR/DESCONECTAR Firebase
-2. GUARDAR marcador con nombre, lat, lng, direccion
-3. LISTAR todos los marcadores de Firebase
-4. HACER CLIC en un marcador para volar al mapa y agregarlo
-5. ELIMINAR marcadores individuales
-6. DOBLE VENTANA: mapa izquierda, panel Firebase derecha
+ 1. CONECTAR/DESCONECTAR Firebase
+ 2. GUARDAR/EDITAR/ELIMINAR Claims (reclamos)
+ 3. GUARDAR/EDITAR/ELIMINAR Aseguranzas
+ 4. GUARDAR/EDITAR/ELIMINAR Abogados de defensa
+ 5. GUARDAR/EDITAR/ELIMINAR MPN Links
+ 6. GUARDAR/EDITAR/ELIMINAR Doctores (con lat/lng para mapa)
+ 7. GUARDAR/EDITAR/ELIMINAR Doctor-Facilities (relacion N:M)
+ 8. FILTROS en el mapa por doctor, especialidad, MPN link
+ 9. DOBLE VENTANA: mapa izquierda, panel Firebase derecha
+ 10. BOTON "SEED" para cargar datos de ejemplo
+ 11. BOTON "CLEAR" para eliminar todos los datos
 
-NOTAS:
-======
+ NOTAS:
+ ======
 
-- Para GitHub Pages, Firebase funciona porque no es local, es la nube
-- La DB persiste entre sesiones y dispositivos
-- Las reglas de prueba permiten lectura/escritura publica (cambiar a secure en produccion)
-- No se necesita servidor ni Python
-- El archivo mapa.html es independiente de index.html
+ - Para GitHub Pages, Firebase funciona porque no es local, es la nube
+ - La DB persiste entre sesiones y dispositivos
+ - Las reglas de prueba permiten lectura/escritura publica (cambiar a secure en produccion)
+ - No se necesita servidor ni Python
+ - El archivo mapa.html es independiente de index.html
+ - Usa el boton "Seed" para cargar datos de ejemplo rapido
 
-================================================================================
-ARCHIVO: FIREBASE_SETUP.txt
-VERSION: 1.0
-================================================================================
+ ================================================================================
+ ARCHIVO: FIREBASE_SETUP.txt
+ VERSION: 2.0
+ ================================================================================
