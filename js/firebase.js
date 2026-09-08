@@ -1,11 +1,11 @@
 const FIREBASE_CONFIG = {
-    apiKey: "TU_API_KEY_AQUI",
-    authDomain: "TU_PROYECTO.firebaseapp.com",
-    databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
-    projectId: "TU_PROYECTO",
-    storageBucket: "TU_PROYECTO.appspot.com",
-    messagingSenderId: "TU_SENDER_ID",
-    appId: "TU_APP_ID"
+    apiKey: "AIzaSyDsA8A8SIpwmAsduf5tZQbrBU2eDxLItpE",
+    authDomain: "miappmap-c7b98.firebaseapp.com",
+    databaseURL: "https://miappmap-c7b98-default-rtdb.firebaseio.com",
+    projectId: "miappmap-c7b98",
+    storageBucket: "miappmap-c7b98.appspot.com",
+    messagingSenderId: "121406195231",
+    appId: "1:121406195231:web:1df294770ef7204158b72a"
 };
 
 const DB = {
