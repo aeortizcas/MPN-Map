@@ -14,7 +14,9 @@ const MAP = {
 
         this.map = L.map('map', {
             center: [36.7783, -119.4179],
-            zoom: 6,
+            zoom: 7,
+            maxBounds: [[32.5, -124.5], [42.0, -114.0]],
+            maxBoundsViscosity: 0.8,
             zoomControl: false,
             attributionControl: true
         });
