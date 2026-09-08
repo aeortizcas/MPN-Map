@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPN Map - Admin Panel</title>
+    <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0a0a1a; color: #fff; }
+        .admin-header { background: #1a1a2e; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e94560; }
+        .admin-header h1 { color: #e94560; font-size: 24px; }
+        .admin-header .status { font-size: 14px; padding: 5px 15px; border-radius: 20px; }
+        .status.connected { background: #2ecc71; color: #000; }
+        .status.disconnected { background: #e74c3c; color: #fff; }
+        .admin-container { display: flex; min-height: calc(100vh - 60px); }
+        .admin-sidebar { width: 250px; background: #1a1a2e; padding-top: 20px; border-right: 2px solid #0f3460; }
+        .admin-sidebar button { display: block; width: 100%; padding: 12px 20px; background: transparent; color: #aaa; border: none; text-align: left; cursor: pointer; font-size: 14px; border-bottom: 1px solid #0f3460; transition: all 0.2s; }
+        .admin-sidebar button:hover { background: #0f3460; color: #fff; }
+        .admin-sidebar button.active { background: #e94560; color: #fff; }
+        .admin-sidebar button i { margin-right: 10px; }
+        .admin-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .admin-section { display: none; }
+        .admin-section.active { display: block; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; max-width: 800px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-group label { color: #e94560; font-size: 12px; margin-bottom: 5px; }
+        .form-group input, .form-group select, .form-group textarea { padding: 10px; background: #0f1a2e; border: 1px solid #0f3460; border-radius: 6px; color: #fff; font-size: 14px; }
+        .form-group textarea { min-height: 80px; resize: vertical; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .btn-primary { background: #e94560; color: #fff; }
+        .btn-primary:hover { background: #c73650; }
+        .btn-secondary { background: #0f3460; color: #fff; }
+        .btn-secondary:hover { background: #1a4a7a; }
+        .btn-danger { background: #e74c3c; color: #fff; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-success { background: #2ecc71; color: #000; }
+        .btn-success:hover { background: #27ae60; }
+        .btn-row { display: flex; gap: 10px; margin-top: 15px; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .data-table th { background: #0f3460; padding: 10px; text-align: left; color: #e94560; font-size: 12px; }
+        .data-table td { padding: 8px 10px; border-bottom: 1px solid #0f3460; font-size: 13px; }
+        .data-table tr:hover { background: #1a1a2e; }
+        .data-table .actions button { padding: 4px 8px; margin-right: 5px; border: none; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .badge { padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .badge-active { background: #2ecc71; color: #000; }
+        .badge-inactive { background: #e74c3c; color: #fff; }
+        .badge-ptp { background: #2ecc71; color: #000; }
+        .badge-stp { background: #3498db; color: #fff; }
+        .badge-lien { background: #e94560; color: #fff; }
+        .badge-qme { background: #f39c12; color: #000; }
+        .badge-mtus { background: #9b59b6; color: #fff; }
+        .seed-section { max-width: 800px; margin-top: 20px; padding: 20px; background: #1a1a2e; border-radius: 10px; border: 1px solid #0f3460; }
+        .seed-section h3 { color: #e94560; margin-bottom: 15px; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background: #2ecc71; color: #000; padding: 12px 24px; border-radius: 8px; font-weight: bold; z-index: 9999; animation: fadeInOut 3s forwards; }
+        @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(20px); } 10% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-20px); } }
+        .stats-row { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+        .stat-card { background: #1a1a2e; border: 1px solid #0f3460; border-radius: 10px; padding: 20px; min-width: 150px; }
+        .stat-card .num { font-size: 32px; font-weight: bold; color: #e94560; }
+        .stat-card .label { font-size: 12px; color: #aaa; margin-top: 5px; }
+        .back-btn { position: fixed; top: 70px; right: 30px; z-index: 1000; }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <h1><i class="fas fa-cogs"></i> MPN Map Admin</h1>
+        <div style="display:flex;gap:10px;align-items:center;">
+            <span id="admin-status" class="status disconnected">🔴 Desconectado</span>
+            <button class="btn btn-primary" onclick="ADMIN.connect()" style="font-size:12px;padding:8px 16px;"><i class="fas fa-plug"></i> Conectar</button>
+            <button class="btn btn-success" onclick="ADMIN.seedSampleData()" style="font-size:12px;padding:8px 16px;"><i class="fas fa-seedling"></i> Seed Datos</button>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <div class="admin-sidebar">
+            <button class="active" onclick="ADMIN.showSection('dashboard', this)"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+            <button onclick="ADMIN.showSection('claims', this)"><i class="fas fa-file-medical"></i> Claims</button>
+            <button onclick="ADMIN.showSection('insurance', this)"><i class="fas fa-shield"></i> Aseguranzas</button>
+            <button onclick="ADMIN.showSection('attorneys', this)"><i class="fas fa-balance-scale"></i> Abogados</button>
+            <button onclick="ADMIN.showSection('mpn-links', this)"><i class="fas fa-link"></i> MPN Links</button>
+            <button onclick="ADMIN.showSection('doctors', this)"><i class="fas fa-user-doctor"></i> Doctores</button>
+            <button onclick="ADMIN.showSection('facilities', this)"><i class="fas fa-hospital"></i> Facilities</button>
+        </div>
+
+        <div class="admin-content">
+
+            <!-- DASHBOARD -->
+            <div id="admin-dashboard" class="admin-section active">
+                <h2 style="color:#e94560;margin-bottom:20px;">Dashboard</h2>
+                <div class="stats-row">
+                    <div class="stat-card"><div class="num" id="stat-claims">0</div><div class="label">Claims</div></div>
+                    <div class="stat-card"><div class="num" id="stat-insurance">0</div><div class="label">Aseguranzas</div></div>
+                    <div class="stat-card"><div class="num" id="stat-attorneys">0</div><div class="label">Abogados</div></div>
+                    <div class="stat-card"><div class="num" id="stat-mpn">0</div><div class="label">MPN Links</div></div>
+                    <div class="stat-card"><div class="num" id="stat-doctors">0</div><div class="label">Doctores</div></div>
+                    <div class="stat-card"><div class="num" id="stat-facilities">0</div><div class="label">Facilities</div></div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-success" onclick="ADMIN.seedSampleData()"><i class="fas fa-seedling"></i> Cargar Datos de Ejemplo</button>
+                    <button class="btn btn-danger" onclick="if(confirm('Eliminar todo?'))ADMIN.clearAll()"><i class="fas fa-trash"></i> Eliminar Todo</button>
+                </div>
+            </div>
+
+            <!-- CLAIMS -->
+            <div id="admin-claims" class="admin-section">
+                <h2 style="color:#e94560;margin-bottom:20px;">Gestionar Claims</h2>
+                <div class="form-grid" style="max-width:700px;">
+                    <div class="form-group"><label>Codigo de Seguro *</label><input type="text" id="adm-claim-code" placeholder="WC-2026-001"></div>
+                    <div class="form-group"><label>Tipo</label>
+                        <select id="adm-claim-type"><option value="Workers Comp">Workers Comp</option><option value="PI">PI</option></select>
+                    </div>
+                    <div class="form-group"><label>Fecha Reclamo</label><input type="date" id="adm-claim-fecha-reclamo"></div>
+                    <div class="form-group"><label>Fecha Lesion</label><input type="date" id="adm-claim-fecha-lesion"></div>
+                    <div class="form-group full"><label>Descripcion</label><textarea id="adm-claim-desc" placeholder="Descripcion del reclamo..."></textarea></div>
+                    <div class="form-group"><label>Estatus</label>
+                        <select id="adm-claim-status"><option value="Abierto">Abierto</option><option value="Cerrado">Cerrado</option><option value="En proceso">En proceso</option></select>
+                    </div>
+                    <div class="form-group"><label>MPN Link</label><select id="adm-claim-mpn"><option value="">Sin link</option></select></div>
+                </div>
+                <div class="btn-row" style="margin-top:20px;">
+                    <button class="btn btn-primary" onclick="ADMIN.saveClaim()"><i class="fas fa-plus"></i> Guardar</button>
+                    <button class="btn btn-secondary" onclick="ADMIN.loadClaims()"><i class="fas fa-sync"></i> Refrescar</button>
+                </div>
+                <table class="data-table" style="margin-top:20px;"><thead><tr><th>ID</th><th>Codigo</th><th>Tipo</th><th>Estatus</th><th>Descripcion</th><th>Acciones</th></tr></thead>
+                <tbody id="admin-claims-list"></tbody></table>
+            </div>
+
+            <!-- INSURANCE -->
+            <div id="admin-insurance" class="admin-section">
+                <h2 style="color:#e94560;margin-bottom:20px;">Gestionar Aseguranzas</h2>
+                <div class="form-grid" style="max-width:700px;">
+                    <div class="form-group"><label>Nombre *</label><input type="text" id="adm-ins-name" placeholder="State Farm"></div>
+                    <div class="form-group"><label>Policy Number</label><input type="text" id="adm-ins-policy" placeholder="SF-123456"></div>
+                    <div class="form-group"><label>Telefono</label><input type="text" id="adm-ins-phone" placeholder="(555) 123-4567"></div>
+                    <div class="form-group"><label>Email</label><input type="text" id="adm-ins-email" placeholder="statefarm@example.com"></div>
+                    <div class="form-group"><label>Direccion</label><input type="text" id="adm-ins-address" placeholder="123 Main St"></div>
+                    <div class="form-group"><label>Estado</label><input type="text" id="adm-ins-state" placeholder="CA"></div>
+                </div>
+                <div class="btn-row" style="margin-top:20px;">
+                    <button class="btn btn-primary" onclick="ADMIN.saveInsurance()"><i class="fas fa-plus"></i> Guardar</button>
+                    <button class="btn btn-secondary" onclick="ADMIN.loadInsurance()"><i class="fas fa-sync"></i> Refrescar</button>
+                </div>
+                <table class="data-table" style="margin-top:20px;"><thead><tr><th>ID</th><th>Nombre</th><th>Policy</th><th>Telefono</th><th>Email</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody id="admin-insurance-list"></tbody></table>
+            </div>
+
+            <!-- ATTORNEYS -->
+            <div id="admin-attorneys" class="admin-section">
+                <h2 style="color:#e94560;margin-bottom:20px;">Gestionar Abogados</h2>
+                <div class="form-grid" style="max-width:700px;">
+                    <div class="form-group"><label>Nombre *</label><input type="text" id="adm-att-name" placeholder="John Smith"></div>
+                    <div class="form-group"><label>Firma</label><input type="text" id="adm-att-firma" placeholder="Smith & Associates"></div>
+                    <div class="form-group"><label>Especialidad</label><input type="text" id="adm-att-especialidad" placeholder="Workers Comp"></div>
+                    <div class="form-group"><label>Telefono</label><input type="text" id="adm-att-phone" placeholder="(555) 111-1111"></div>
+                    <div class="form-group"><label>Email</label><input type="text" id="adm-att-email" placeholder="john@smith.com"></div>
+                    <div class="form-group"><label>Direccion</label><input type="text" id="adm-att-address" placeholder="789 Oak Ave"></div>
+                    <div class="form-group"><label>Estado</label><input type="text" id="adm-att-state" placeholder="CA"></div>
+                    <div class="form-group"><label>Activo</label>
+                        <select id="adm-att-activo"><option value="true">Si</option><option value="false">No</option></select>
+                    </div>
+                </div>
+                <div class="btn-row" style="margin-top:20px;">
+                    <button class="btn btn-primary" onclick="ADMIN.saveAttorney()"><i class="fas fa-plus"></i> Guardar</button>
+                    <button class="btn btn-secondary" onclick="ADMIN.loadAttorneys()"><i class="fas fa-sync"></i> Refrescar</button>
+                </div>
+                <table class="data-table" style="margin-top:20px;"><thead><tr><th>ID</th><th>Nombre</th><th>Firma</th><th>Especialidad</th><th>Activo</th><th>Acciones</th></tr></thead>
+                <tbody id="admin-attorneys-list"></tbody></table>
+            </div>
+
+            <!-- MPN LINKS -->
+            <div id="admin-mpn-links" class="admin-section">
+                <h2 style="color:#e94560;margin-bottom:20px;">Gestionar MPN Links</h2>
+                <div class="form-grid" style="max-width:700px;">
+                    <div class="form-group"><label>Nombre *</label><input type="text" id="adm-mpn-name" placeholder="MPN Red de California"></div>
+                    <div class="form-group"><label>URL</label><input type="text" id="adm-mpn-url" placeholder="https://mpn1.example.com"></div>
+                    <div class="form-group"><label>Aseguranza</label><select id="adm-mpn-insurance"><option value="">Sin aseguranza</option></select></div>
+                    <div class="form-group"><label>Caso Asociado</label><input type="text" id="adm-mpn-caso" placeholder="claim_001"></div>
+                </div>
+                <div class="btn-row" style="margin-top:20px;">
+                    <button class="btn btn-primary" onclick="ADMIN.saveMPNLink()"><i class="fas fa-plus"></i> Guardar</button>
+                    <button class="btn btn-secondary" onclick="ADMIN.loadMPNLinks()"><i class="fas fa-sync"></i> Refrescar</button>
+                </div>
+                <table class="data-table" style="margin-top:20px;"><thead><tr><th>ID</th><th>Nombre</th><th>URL</th><th>Caso</th><th>Aseguranza</th><th>Acciones</th></tr></thead>
+                <tbody id="admin-mpn-list"></tbody></table>
+            </div>
+
+            <!-- DOCTORS -->
+            <div id="admin-doctors" class="admin-section">
+                <h2 style="color:#e94560;margin-bottom:20px;">Gestionar Doctores</h2>
+                <div class="form-grid" style="max-width:700px;">
+                    <div class="form-group"><label>Nombre *</label><input type="text" id="adm-doc-name" placeholder="Dr. James Wilson"></div>
+                    <div class="form-group"><label>Especialidad</label><input type="text" id="adm-doc-especialidad" placeholder="Ortopedia"></div>
+                    <div class="form-group"><label>Zipcode</label><input type="text" id="adm-doc-zip" placeholder="90210"></div>
+                    <div class="form-group"><label>Latitud *</label><input type="text" id="adm-doc-lat" placeholder="34.0901"></div>
+                    <div class="form-group"><label>Longitud *</label><input type="text" id="adm-doc-lng" placeholder="-118.4065"></div>
+                    <div class="form-group"><label>Telefono</label><input type="text" id="adm-doc-phone" placeholder="(555) 333-3333"></div>
+                </div>
+                <div class="btn-row" style="margin-top:20px;">
+                    <button class="btn btn-primary" onclick="ADMIN.saveDoctor()"><i class="fas fa-plus"></i> Guardar</button>
+                    <button class="btn btn-secondary" onclick="ADMIN.loadDoctors()"><i class="fas fa-sync"></i> Refrescar</button>
+                </div>
+                <table class="data-table" style="margin-top:20px;"><thead><tr><th>ID</th><th>Nombre</th><th>Especialidad</th><th>Zip</th><th>Lat</th><th>Lng</th><th>Telefono</th><th>Acciones</th></tr></thead>
+                <tbody id="admin-doctors-list"></tbody></table>
+            </div>
+
+            <!-- FACILITIES -->
+            <div id="admin-facilities" class="admin-section">
+                <h2 style="color:#e94560;margin-bottom:20px;">Gestionar Facilities (Relacion Doctor-MPN)</h2>
+                <div class="form-grid" style="max-width:700px;">
+                    <div class="form-group"><label>Doctor</label><select id="adm-fac-doctor"><option value="">Seleccionar</option></select></div>
+                    <div class="form-group"><label>MPN Link</label><select id="adm-fac-mpn"><option value="">Seleccionar</option></select></div>
+                    <div class="form-group"><label>Nombre de Facility *</label><input type="text" id="adm-fac-name" placeholder="Wilson Ortho Clinic"></div>
+                    <div class="form-group"><label>Tipo</label>
+                        <select id="adm-fac-type"><option value="Clinica">Clinica</option><option value="Hospital">Hospital</option><option value="Centro">Centro</option></select>
+                    </div>
+                    <div class="form-group"><label>Partes del Cuerpo</label><input type="text" id="adm-fac-body" placeholder="Espalda, Rodilla"></div>
+                    <div class="form-group"><label>Rol</label>
+                        <select id="adm-fac-rol"><option value="PTP">PTP</option><option value="STP">STP</option><option value="LIEN">LIEN</option><option value="QME">QME</option><option value="MTUS">MTUS</option><option value="OTRO">OTRO</option></select>
+                    </div>
+                    <div class="form-group"><label>Estado</label>
+                        <select id="adm-fac-estado"><option value="Activo">Activo</option><option value="Inactivo">Inactivo</option></select>
+                    </div>
+                </div>
+                <div class="btn-row" style="margin-top:20px;">
+                    <button class="btn btn-primary" onclick="ADMIN.saveFacility()"><i class="fas fa-plus"></i> Guardar</button>
+                    <button class="btn btn-secondary" onclick="ADMIN.loadFacilities()"><i class="fas fa-sync"></i> Refrescar</button>
+                </div>
+                <table class="data-table" style="margin-top:20px;"><thead><tr><th>ID</th><th>Facility</th><th>Doctor</th><th>MPN</th><th>Rol</th><th>Body Part</th><th>Estado</th><th>Acciones</th></tr></thead>
+                <tbody id="admin-facilities-list"></tbody></table>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+        import { getDatabase, ref, set, push, remove, onValue, get, child } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyDsA8A8SIpwmAsduf5tZQbrBU2eDxLItpE",
+            authDomain: "miappmap-c7b98.firebaseapp.com",
+            databaseURL: "https://miappmap-c7b98-default-rtdb.firebaseio.com",
+            projectId: "miappmap-c7b98",
+            storageBucket: "miappmap-c7b98.appspot.com",
+            messagingSenderId: "121406195231",
+            appId: "1:121406195231:web:1df294770ef7204158b72a"
+        };
+
+        let db = null;
+        let connected = false;
+
+        function init() {
+            try {
+                const app = initializeApp(FIREBASE_CONFIG);
+                db = getDatabase(app);
+                connected = true;
+                document.getElementById('admin-status').textContent = '🟢 Conectado';
+                document.getElementById('admin-status').className = 'status connected';
+                ADMIN.updateCounts();
+            } catch (err) {
+                document.getElementById('admin-status').textContent = '🔴 Error';
+                console.error('Firebase:', err);
+            }
+        }
+
+        window.ADMIN = {
+            connect() { init(); },
+
+            showSection(name, btn) {
+                document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.admin-sidebar button').forEach(b => b.classList.remove('active'));
+                document.getElementById('admin-' + name).classList.add('active');
+                if (btn) btn.classList.add('active');
+                this.loadSection(name);
+            },
+
+            loadSection(name) {
+                switch(name) {
+                    case 'dashboard': this.updateCounts(); break;
+                    case 'claims': this.loadClaims(); break;
+                    case 'insurance': this.loadInsurance(); break;
+                    case 'attorneys': this.loadAttorneys(); break;
+                    case 'mpn-links': this.loadMPNLinks(); break;
+                    case 'doctors': this.loadDoctors(); break;
+                    case 'facilities': this.loadFacilities(); break;
+                }
+            },
+
+            async updateCounts() {
+                if (!db) return;
+                const paths = ['claims','insurance','attorneys','mpn_links','doctors','doctor_facilities'];
+                for (const p of paths) {
+                    try {
+                        const snap = await get(ref(db, p));
+                        const el = document.getElementById('stat-' + p.replace('_', '-').replace('links', 'mpn'));
+                        if (el && snap.val()) el.textContent = Object.keys(snap.val()).length;
+                    } catch(e) {}
+                }
+            },
+
+            async saveClaim() {
+                const codigo = document.getElementById('adm-claim-code').value.trim();
+                const tipo = document.getElementById('adm-claim-type').value;
+                const fr = document.getElementById('adm-claim-fecha-reclamo').value;
+                const fl = document.getElementById('adm-claim-fecha-lesion').value;
+                const desc = document.getElementById('adm-claim-desc').value.trim();
+                const estatus = document.getElementById('adm-claim-status').value;
+                const mpn = document.getElementById('adm-claim-mpn').value;
+                if (!codigo) { this.showToast('Completa el codigo'); return; }
+                await set(push(ref(db, 'claims')), { codigo_aseguranza: codigo, tipo, fecha_reclamo: fr, fecha_lesion: fl, descripcion: desc, estatus, mpn_link_id: mpn || null, fecha_creacion: Date.now() });
+                this.showToast('Claim guardado');
+                this.loadClaims();
+                this.updateCounts();
+            },
+
+            async loadClaims() {
+                const list = document.getElementById('admin-claims-list');
+                if (!db) return;
+                const snap = await get(ref(db, 'claims'));
+                const data = snap.val();
+                if (!data) { list.innerHTML = '<tr><td colspan="6">Sin claims</td></tr>'; return; }
+                list.innerHTML = '';
+                Object.keys(data).forEach(key => {
+                    const c = data[key];
+                    list.innerHTML += `<tr><td>${key}</td><td>${c.codigo_aseguranza}</td><td>${c.tipo}</td><td>${c.estatus}</td><td>${c.descripcion || ''}</td><td class="actions"><button class="btn btn-danger" onclick="ADMIN.deleteClaim('${key}')">Eliminar</button></td></tr>`;
+                });
+            },
+
+            async deleteClaim(key) {
+                if (confirm('Eliminar este claim?')) {
+                    await remove(ref(db, 'claims/' + key));
+                    this.showToast('Claim eliminado');
+                    this.loadClaims(); this.updateCounts();
+                }
+            },
+
+            async saveInsurance() {
+                const nombre = document.getElementById('adm-ins-name').value.trim();
+                if (!nombre) { this.showToast('Completa el nombre'); return; }
+                await set(push(ref(db, 'insurance')), { nombre, policy_number: document.getElementById('adm-ins-policy').value, telefono: document.getElementById('adm-ins-phone').value, email: document.getElementById('adm-ins-email').value, direccion: document.getElementById('adm-ins-address').value, estado: document.getElementById('adm-ins-state').value, fecha_creacion: Date.now() });
+                this.showToast('Aseguranza guardada');
+                this.loadInsurance(); this.updateCounts();
+            },
+
+            async loadInsurance() {
+                const list = document.getElementById('admin-insurance-list');
+                if (!db) return;
+                const snap = await get(ref(db, 'insurance'));
+                const data = snap.val();
+                if (!data) { list.innerHTML = '<tr><td colspan="7">Sin aseguranzas</td></tr>'; return; }
+                list.innerHTML = '';
+                Object.keys(data).forEach(key => {
+                    const i = data[key];
+                    list.innerHTML += `<tr><td>${key}</td><td>${i.nombre}</td><td>${i.policy_number}</td><td>${i.telefono}</td><td>${i.email}</td><td>${i.estado}</td><td class="actions"><button class="btn btn-danger" onclick="ADMIN.deleteInsurance('${key}')">Eliminar</button></td></tr>`;
+                });
+            },
+
+            async deleteInsurance(key) {
+                await remove(ref(db, 'insurance/' + key));
+                this.showToast('Aseguranza eliminada');
+                this.loadInsurance(); this.updateCounts();
+            },
+
+            async saveAttorney() {
+                const nombre = document.getElementById('adm-att-name').value.trim();
+                if (!nombre) { this.showToast('Completa el nombre'); return; }
+                await set(push(ref(db, 'attorneys')), { nombre, firma: document.getElementById('adm-att-firma').value, especialidad: document.getElementById('adm-att-especialidad').value, telefono: document.getElementById('adm-att-phone').value, email: document.getElementById('adm-att-email').value, direccion: document.getElementById('adm-att-address').value, estado: document.getElementById('adm-att-state').value, activo: document.getElementById('adm-att-activo').value === 'true', fecha_creacion: Date.now() });
+                this.showToast('Abogado guardado');
+                this.loadAttorneys(); this.updateCounts();
+            },
+
+            async loadAttorneys() {
+                const list = document.getElementById('admin-attorneys-list');
+                if (!db) return;
+                const snap = await get(ref(db, 'attorneys'));
+                const data = snap.val();
+                if (!data) { list.innerHTML = '<tr><td colspan="6">Sin abogados</td></tr>'; return; }
+                list.innerHTML = '';
+                Object.keys(data).forEach(key => {
+                    const a = data[key];
+                    list.innerHTML += `<tr><td>${key}</td><td>${a.nombre}</td><td>${a.firma}</td><td>${a.especialidad}</td><td><span class="badge ${a.activo ? 'badge-active' : 'badge-inactive'}">${a.activo ? 'Activo' : 'Inactivo'}</span></td><td class="actions"><button class="btn btn-danger" onclick="ADMIN.deleteAttorney('${key}')">Eliminar</button></td></tr>`;
+                });
+            },
+
+            async deleteAttorney(key) {
+                await remove(ref(db, 'attorneys/' + key));
+                this.showToast('Abogado eliminado');
+                this.loadAttorneys(); this.updateCounts();
+            },
+
+            async saveMPNLink() {
+                const nombre = document.getElementById('adm-mpn-name').value.trim();
+                if (!nombre) { this.showToast('Completa el nombre'); return; }
+                const ins = document.getElementById('adm-mpn-insurance').value;
+                await set(push(ref(db, 'mpn_links')), { nombre, url: document.getElementById('adm-mpn-url').value, aseguranca_id: ins || null, caso_asociado: document.getElementById('adm-mpn-caso').value, fecha_creacion: Date.now() });
+                this.showToast('MPN Link guardado');
+                this.loadMPNLinks(); this.updateCounts();
+            },
+
+            async loadMPNLinks() {
+                const list = document.getElementById('admin-mpn-list');
+                if (!db) return;
+                const snap = await get(ref(db, 'mpn_links'));
+                const data = snap.val();
+                if (!data) { list.innerHTML = '<tr><td colspan="6">Sin MPN links</td></tr>'; return; }
+                list.innerHTML = '';
+                Object.keys(data).forEach(key => {
+                    const l = data[key];
+                    list.innerHTML += `<tr><td>${key}</td><td>${l.nombre}</td><td>${l.url}</td><td>${l.caso_asociado || ''}</td><td>${l.aseguranca_id || ''}</td><td class="actions"><button class="btn btn-danger" onclick="ADMIN.deleteMPNLink('${key}')">Eliminar</button></td></tr>`;
+                });
+            },
+
+            async deleteMPNLink(key) {
+                await remove(ref(db, 'mpn_links/' + key));
+                this.showToast('MPN Link eliminado');
+                this.loadMPNLinks(); this.updateCounts();
+            },
+
+            async saveDoctor() {
+                const nombre = document.getElementById('adm-doc-name').value.trim();
+                const lat = parseFloat(document.getElementById('adm-doc-lat').value);
+                const lng = parseFloat(document.getElementById('adm-doc-lng').value);
+                if (!nombre || isNaN(lat) || isNaN(lng)) { this.showToast('Completa nombre, lat y lng'); return; }
+                await set(push(ref(db, 'doctors')), { nombre, especialidad: document.getElementById('adm-doc-especialidad').value, zipcode: document.getElementById('adm-doc-zip').value, lat, lng, telefono: document.getElementById('adm-doc-phone').value, fecha_creacion: Date.now() });
+                this.showToast('Doctor guardado');
+                this.loadDoctors(); this.updateCounts();
+            },
+
+            async loadDoctors() {
+                const list = document.getElementById('admin-doctors-list');
+                if (!db) return;
+                const snap = await get(ref(db, 'doctors'));
+                const data = snap.val();
+                if (!data) { list.innerHTML = '<tr><td colspan="8">Sin doctores</td></tr>'; return; }
+                list.innerHTML = '';
+                Object.keys(data).forEach(key => {
+                    const d = data[key];
+                    list.innerHTML += `<tr><td>${key}</td><td>${d.nombre}</td><td>${d.especialidad}</td><td>${d.zipcode}</td><td>${d.lat}</td><td>${d.lng}</td><td>${d.telefono}</td><td class="actions"><button class="btn btn-danger" onclick="ADMIN.deleteDoctor('${key}')">Eliminar</button></td></tr>`;
+                });
+            },
+
+            async deleteDoctor(key) {
+                await remove(ref(db, 'doctors/' + key));
+                this.showToast('Doctor eliminado');
+                this.loadDoctors(); this.updateCounts();
+            },
+
+            async saveFacility() {
+                const doctorId = document.getElementById('adm-fac-doctor').value;
+                const mpnId = document.getElementById('adm-fac-mpn').value;
+                const name = document.getElementById('adm-fac-name').value.trim();
+                if (!doctorId || !mpnId || !name) { this.showToast('Completa doctor, MPN y nombre'); return; }
+                await set(push(ref(db, 'doctor_facilities')), { doctor_id: doctorId, mpn_link_id: mpnId, facility_name: name, facility_type: document.getElementById('adm-fac-type').value, body_part: document.getElementById('adm-fac-body').value, rol_proveedor: document.getElementById('adm-fac-rol').value, estado: document.getElementById('adm-fac-estado').value, fecha_creacion: Date.now() });
+                this.showToast('Facility guardada');
+                this.loadFacilities(); this.updateCounts();
+            },
+
+            async loadFacilities() {
+                const list = document.getElementById('admin-facilities-list');
+                if (!db) return;
+                const snap = await get(ref(db, 'doctor_facilities'));
+                const data = snap.val();
+                if (!data) { list.innerHTML = '<tr><td colspan="8">Sin facilities</td></tr>'; return; }
+                list.innerHTML = '';
+                Object.keys(data).forEach(key => {
+                    const f = data[key];
+                    const rolBadge = { PTP: 'badge-ptp', STP: 'badge-stp', LIEN: 'badge-lien', QME: 'badge-qme', MTUS: 'badge-mtus', OTRO: '' }[f.rol_proveedor] || '';
+                    list.innerHTML += `<tr><td>${key}</td><td>${f.facility_name}</td><td>${f.doctor_id}</td><td>${f.mpn_link_id}</td><td><span class="badge ${rolBadge}">${f.rol_proveedor}</span></td><td>${f.body_part || ''}</td><td><span class="badge ${f.estado === 'Activo' ? 'badge-active' : 'badge-inactive'}">${f.estado}</span></td><td class="actions"><button class="btn btn-danger" onclick="ADMIN.deleteFacility('${key}')">Eliminar</button></td></tr>`;
+                });
+            },
+
+            async deleteFacility(key) {
+                await remove(ref(db, 'doctor_facilities/' + key));
+                this.showToast('Facility eliminada');
+                this.loadFacilities(); this.updateCounts();
+            },
+
+            async seedSampleData() {
+                if (!db) { this.showToast('Conecta primero'); return; }
+                await set(ref(db, 'claims'), {
+                    'claim_001': { codigo_aseguranza: 'WC-2026-001', tipo: 'Workers Comp', fecha_reclamo: '2026-01-15', fecha_lesion: '2025-12-01', descripcion: 'Lesion en espalda baja - trabajador de construccion', estatus: 'Abierto', mpn_link_id: null, fecha_creacion: Date.now() },
+                    'claim_002': { codigo_aseguranza: 'PI-2026-042', tipo: 'PI', fecha_reclamo: '2026-03-10', fecha_lesion: '2026-02-20', descripcion: 'Accidente automovilistico - lesion cervical', estatus: 'En proceso', mpn_link_id: null, fecha_creacion: Date.now() }
+                });
+                await set(ref(db, 'insurance'), {
+                    'ins_001': { nombre: 'State Farm', policy_number: 'SF-123456', telefono: '(555) 123-4567', email: 'statefarm@example.com', direccion: '123 Main St', estado: 'CA', fecha_creacion: Date.now() },
+                    'ins_002': { nombre: 'GEICO', policy_number: 'GE-789012', telefono: '(555) 987-6543', email: 'geico@example.com', direccion: '456 Elm St', estado: 'TX', fecha_creacion: Date.now() }
+                });
+                await set(ref(db, 'attorneys'), {
+                    'att_001': { nombre: 'John Smith', firma: 'Smith & Associates', especialidad: 'Workers Comp', telefono: '(555) 111-1111', email: 'john@smith.com', direccion: '789 Oak Ave', estado: 'CA', activo: true, fecha_creacion: Date.now() },
+                    'att_002': { nombre: 'Maria Garcia', firma: 'Garcia Law Firm', especialidad: 'PI', telefono: '(555) 222-2222', email: 'maria@garcia.com', direccion: '321 Pine St', estado: 'TX', activo: true, fecha_creacion: Date.now() }
+                });
+                await set(ref(db, 'doctors'), {
+                    'doc_001': { nombre: 'Dr. James Wilson', especialidad: 'Ortopedia', zipcode: '90210', lat: 34.0901, lng: -118.4065, telefono: '(555) 333-3333', fecha_creacion: Date.now() },
+                    'doc_002': { nombre: 'Dr. Sarah Chen', especialidad: 'Neurologia', zipcode: '10001', lat: 40.7128, lng: -74.0060, telefono: '(555) 444-4444', fecha_creacion: Date.now() },
+                    'doc_003': { nombre: 'Dr. Robert Martinez', especialidad: 'Medicina Fisica', zipcode: '60601', lat: 41.8781, lng: -87.6298, telefono: '(555) 555-5555', fecha_creacion: Date.now() }
+                });
+                await set(ref(db, 'mpn_links'), {
+                    'mpn_001': { url: 'https://mpn1.example.com', nombre: 'MPN Red de California', aseguranca_id: 'ins_001', caso_asociado: 'claim_001', fecha_creacion: Date.now() },
+                    'mpn_002': { url: 'https://mpn2.example.com', nombre: 'MPN Network Texas', aseguranca_id: 'ins_002', caso_asociado: 'claim_002', fecha_creacion: Date.now() }
+                });
+                await set(ref(db, 'doctor_facilities'), {
+                    'fac_001': { doctor_id: 'doc_001', mpn_link_id: 'mpn_001', facility_name: 'Wilson Ortho Clinic', facility_type: 'Clinica', body_part: 'Espalda, Rodilla', rol_proveedor: 'PTP', estado: 'Activo', fecha_creacion: Date.now() },
+                    'fac_002': { doctor_id: 'doc_002', mpn_link_id: 'mpn_002', facility_name: 'Chen Neurology Center', facility_type: 'Hospital', body_part: 'Cuello, Hombro', rol_proveedor: 'QME', estado: 'Activo', fecha_creacion: Date.now() }
+                });
+                this.showToast('Datos de ejemplo cargados!');
+                this.updateCounts();
+            },
+
+            async clearAll() {
+                if (!db || !confirm('Eliminar TODOS los datos?')) return;
+                ['claims','insurance','attorneys','mpn_links','doctors','doctor_facilities'].forEach(async (p) => {
+                    await set(ref(db, p), null);
+                });
+                this.showToast('Todos los datos eliminados');
+                this.updateCounts();
+            },
+
+            showToast(msg) {
+                const existing = document.querySelector('.toast');
+                if (existing) existing.remove();
+                const t = document.createElement('div');
+                t.className = 'toast';
+                t.textContent = msg;
+                document.body.appendChild(t);
+                setTimeout(() => t.remove(), 3000);
+            },
+
+            async populateSelects() {
+                if (!db) return;
+                const pop = async (path, selectId, labelKey) => {
+                    try {
+                        const snap = await get(ref(db, path));
+                        const data = snap.val();
+                        const sel = document.getElementById(selectId);
+                        if (!sel || !data) return;
+                        sel.innerHTML = '<option value="">Seleccionar...</option>';
+                        Object.keys(data).forEach(k => {
+                            const o = document.createElement('option');
+                            o.value = k; o.textContent = data[k][labelKey] || k;
+                            sel.appendChild(o);
+                        });
+                    } catch(e) {}
+                };
+                await pop('mpn_links', 'adm-claim-mpn', 'nombre');
+                await pop('insurance', 'adm-mpn-insurance', 'nombre');
+                await pop('doctors', 'adm-fac-doctor', 'nombre');
+                await pop('mpn_links', 'adm-fac-mpn', 'nombre');
+                await pop('attorneys', 'adm-fac-doctor', 'nombre');
+            }
+        };
+
+        // Load on startup
+        init();
+
+        // Auto-populate selects when sections shown
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.admin-sidebar button')) {
+                setTimeout(() => ADMIN.populateSelects(), 100);
+            }
+        });
+    </script>
+</body>
+</html>
