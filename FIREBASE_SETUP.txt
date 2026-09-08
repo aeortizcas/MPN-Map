@@ -1,0 +1,131 @@
+================================================================================
+FIREBASE - CONFIGURACION Y SETUP PARA MPN MAP
+================================================================================
+
+FECHA: 07/09/2026
+ARCHIVO: FIREBASE_SETUP.txt
+================================================================================
+
+PASO 1: CREAR PROYECTO EN FIREBASE
+=====================================
+
+1. Ve a https://console.firebase.google.com
+2. Haz clic en "Crear proyecto"
+3. Nombre del proyecto: "mpn-map" (o el que quieras)
+4. Desactiva Google Analytics (opcional)
+5. Haz clic en "Crear proyecto"
+6. Espera a que se cargue
+
+PASO 2: CREAR BASE DE DATOS REALTIME
+======================================
+
+1. En el panel izquierdo, ve a "Build" > "Realtime Database"
+2. Haz clic en "Crear base de datos"
+3. Selecciona una ubicacion (ej: us-central1)
+4. Reglas de prueba:
+   {
+     "rules": {
+       ".read": true,
+       ".write": true
+     }
+   }
+5. Haz clic en "Habilitar"
+6. ANOTA LA URL: https://TU_PROYECTO-default-rtdb.firebaseio.com
+
+PASO 3: OBTENER EL CONFIG
+==========================
+
+1. En Firebase Console, ve a "Project Settings" (icono de engranaje)
+2. Ve a la pestana "General"
+3. Busca "Tus apps"
+4. Haz clic en el icono Web (</>)
+5. Registra la app con un nombre (ej: "mpn-web")
+6. COPIA TODO EL CODIGO DE CONFIGURACION
+
+EL CONFIG TIENE ESTE FORMATO:
+{
+  apiKey: "AIzaSyxxxxxxxxxxxxxxxxxxxx",
+  authDomain: "mpn-map.firebaseapp.com",
+  databaseURL: "https://mpn-map-default-rtdb.firebaseio.com",
+  projectId: "mpn-map",
+  storageBucket: "mpn-map.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abcdef123456"
+}
+
+PASO 4: EDITAR js/firebase.js
+================================
+
+Abre el archivo js/firebase.js y reemplaza:
+
+const FIREBASE_CONFIG = {
+    apiKey: "TU_API_KEY_AQUI",
+    authDomain: "TU_PROYECTO.firebaseapp.com",
+    databaseURL: "https://TU_PROYECTO-default-rtdb.firebaseio.com",
+    projectId: "TU_PROYECTO",
+    storageBucket: "TU_PROYECTO.appspot.com",
+    messagingSenderId: "TU_SENDER_ID",
+    appId: "TU_APP_ID"
+};
+
+CON TU CONFIG COPIADO:
+
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyxxxxxxxxxxxxxxxxxxxx",
+    authDomain: "mpn-map.firebaseapp.com",
+    databaseURL: "https://mpn-map-default-rtdb.firebaseio.com",
+    projectId: "mpn-map",
+    storageBucket: "mpn-map.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdef123456"
+};
+
+PASO 5: VERIFICAR QUE FUNCIONA
+================================
+
+1. Abre el navegador
+2. Ve a http://localhost:8080/landing.html (o donde tengas el servidor)
+3. En la barra superior veras: 🔴 Firebase
+4. Haz clic en el boton de base de datos (icono 📊 arriba a la derecha)
+5. Haz clic en "Conectar"
+6. Deberia cambiar a: 🟢 Conectado
+7. Guarda un marcador y verifica en Firebase Console > Realtime Database
+
+ESTRUCTURA DE DATOS EN FIREBASE:
+==================================
+
+marcadores/
+    ├── unique_id_1/
+    │   ├── nombre: "Doctor Juan"
+    │   ├── lat: 39.8283
+    │   ├── lng: -98.5795
+    │   ├── address: "123 Main St"
+    │   ├── fecha: 1694123456789
+    │   └── usuario: "local"
+    ├── unique_id_2/
+    │   ├── ...
+    └── ...
+
+FUNCIONALIDADES:
+===============
+
+1. CONECTAR/DESCONECTAR Firebase
+2. GUARDAR marcador con nombre, lat, lng, direccion
+3. LISTAR todos los marcadores de Firebase
+4. HACER CLIC en un marcador para volar al mapa y agregarlo
+5. ELIMINAR marcadores individuales
+6. DOBLE VENTANA: mapa izquierda, panel Firebase derecha
+
+NOTAS:
+======
+
+- Para GitHub Pages, Firebase funciona porque no es local, es la nube
+- La DB persiste entre sesiones y dispositivos
+- Las reglas de prueba permiten lectura/escritura publica (cambiar a secure en produccion)
+- No se necesita servidor ni Python
+- El archivo mapa.html es independiente de index.html
+
+================================================================================
+ARCHIVO: FIREBASE_SETUP.txt
+VERSION: 1.0
+================================================================================
