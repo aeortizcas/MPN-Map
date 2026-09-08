@@ -1,3 +1,6 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+import { getDatabase, ref, set, push, remove, onValue, get } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-database.js";
+
 const FIREBASE_CONFIG = {
     apiKey: "AIzaSyDsA8A8SIpwmAsduf5tZQbrBU2eDxLItpE",
     authDomain: "miappmap-c7b98.firebaseapp.com",
@@ -16,8 +19,8 @@ const DB = {
 
     init() {
         try {
-            firebase.initializeApp(FIREBASE_CONFIG);
-            this.db = firebase.database();
+            const app = initializeApp(FIREBASE_CONFIG);
+            this.db = getDatabase(app);
             this.updateStatus('🟢 Firebase listo', 'green');
         } catch (err) {
             this.updateStatus('🔴 Configurar Firebase', 'red');
@@ -60,7 +63,6 @@ const DB = {
         const content = document.getElementById(`fb-${tab}`);
         if (content) content.style.display = 'block';
         this.loadTab(tab);
-        // Populate dropdowns after tab switch
         if (tab === 'claims') this.populateMPNSelect('fb-claim-mpn');
         if (tab === 'mpn-links') this.populateInsuranceSelect('fb-mpn-insurance');
         if (tab === 'facilities') {
@@ -81,8 +83,7 @@ const DB = {
     },
 
     // ============ HELPERS ============
-    ref(path) { return this.db.ref(path); },
-    push(path) { return this.db.ref(path).push(); },
+    r(path) { return ref(this.db, path); },
 
     showToast(msg) {
         const existing = document.querySelector('.toast');
@@ -113,7 +114,7 @@ const DB = {
 
         if (!codigo) { this.showToast('Completa el codigo de seguro'); return; }
 
-        this.push('claims').set({
+        set(push(this.r('claims')), {
             codigo_aseguranza: codigo,
             tipo: tipo,
             fecha_reclamo: fechaReclamo,
@@ -134,7 +135,7 @@ const DB = {
         const list = document.getElementById('fb-claims-list');
         if (!list) return;
         list.innerHTML = '<div style="color:#888;font-size:11px;">Cargando...</div>';
-        this.ref('claims').on('value', (snapshot) => {
+        onValue(this.r('claims'), (snapshot) => {
             const data = snapshot.val();
             if (!data) { list.innerHTML = '<div style="color:#888;font-size:11px;">Sin reclamos</div>'; return; }
             list.innerHTML = '';
@@ -150,17 +151,17 @@ const DB = {
     },
 
     deleteClaim(key) {
-        this.ref('claims/' + key).remove().then(() => {
+        remove(this.r('claims/' + key)).then(() => {
             this.showToast('Reclamo eliminado');
             this.loadClaims();
         });
     },
 
     flyToClaim(key) {
-        this.ref('claims/' + key).once('value').then((snapshot) => {
+        get(this.r('claims/' + key)).then((snapshot) => {
             const c = snapshot.val();
             if (c && c.mpn_link_id) {
-                this.ref('mpn_links/' + c.mpn_link_id).once('value').then((msnap) => {
+                get(this.r('mpn_links/' + c.mpn_link_id)).then((msnap) => {
                     const link = msnap.val();
                     if (link && link.lat) {
                         MAP.map.flyTo([link.lat, link.lng], 12);
@@ -188,7 +189,7 @@ const DB = {
 
         if (!nombre) { this.showToast('Completa el nombre de la aseguranza'); return; }
 
-        this.push('insurance').set({
+        set(push(this.r('insurance')), {
             nombre: nombre,
             policy_number: policyNum,
             telefono: telefono,
@@ -208,7 +209,7 @@ const DB = {
         const list = document.getElementById('fb-insurance-list');
         if (!list) return;
         list.innerHTML = '<div style="color:#888;font-size:11px;">Cargando...</div>';
-        this.ref('insurance').on('value', (snapshot) => {
+        onValue(this.r('insurance'), (snapshot) => {
             const data = snapshot.val();
             if (!data) { list.innerHTML = '<div style="color:#888;font-size:11px;">Sin aseguranzas</div>'; return; }
             list.innerHTML = '';
@@ -224,7 +225,7 @@ const DB = {
     },
 
     deleteInsurance(key) {
-        this.ref('insurance/' + key).remove().then(() => {
+        remove(this.r('insurance/' + key)).then(() => {
             this.showToast('Aseguranza eliminada');
             this.loadInsurance();
         });
@@ -244,7 +245,7 @@ const DB = {
 
         if (!nombre) { this.showToast('Completa el nombre del abogado'); return; }
 
-        this.push('attorneys').set({
+        set(push(this.r('attorneys')), {
             nombre: nombre,
             firma: firma,
             especialidad: especialidad,
@@ -266,7 +267,7 @@ const DB = {
         const list = document.getElementById('fb-attorneys-list');
         if (!list) return;
         list.innerHTML = '<div style="color:#888;font-size:11px;">Cargando...</div>';
-        this.ref('attorneys').on('value', (snapshot) => {
+        onValue(this.r('attorneys'), (snapshot) => {
             const data = snapshot.val();
             if (!data) { list.innerHTML = '<div style="color:#888;font-size:11px;">Sin abogados</div>'; return; }
             list.innerHTML = '';
@@ -282,7 +283,7 @@ const DB = {
     },
 
     deleteAttorney(key) {
-        this.ref('attorneys/' + key).remove().then(() => {
+        remove(this.r('attorneys/' + key)).then(() => {
             this.showToast('Abogado eliminado');
             this.loadAttorneys();
         });
@@ -301,7 +302,7 @@ const DB = {
         const data = { nombre, url, caso_asociado: casoAsociado, fecha_creacion: Date.now() };
         if (asegurancaId && asegurancaId !== '') data.aseguranca_id = asegurancaId;
 
-        this.push('mpn_links').set(data).then(() => {
+        set(push(this.r('mpn_links')), data).then(() => {
             this.showToast('MPN Link guardado');
             this.clearForm('mpn');
             this.loadMPNLinks();
@@ -313,7 +314,7 @@ const DB = {
         const list = document.getElementById('fb-mpn-list');
         if (!list) return;
         list.innerHTML = '<div style="color:#888;font-size:11px;">Cargando...</div>';
-        this.ref('mpn_links').on('value', (snapshot) => {
+        onValue(this.r('mpn_links'), (snapshot) => {
             const data = snapshot.val();
             if (!data) { list.innerHTML = '<div style="color:#888;font-size:11px;">Sin MPN links</div>'; return; }
             list.innerHTML = '';
@@ -332,7 +333,7 @@ const DB = {
     },
 
     deleteMPNLink(key) {
-        this.ref('mpn_links/' + key).remove().then(() => {
+        remove(this.r('mpn_links/' + key)).then(() => {
             this.showToast('MPN Link eliminado');
             this.loadMPNLinks();
         });
@@ -350,7 +351,7 @@ const DB = {
 
         if (!nombre || isNaN(lat) || isNaN(lng)) { this.showToast('Completa nombre, lat y lng'); return; }
 
-        this.push('doctors').set({
+        set(push(this.r('doctors')), {
             nombre: nombre,
             especialidad: especialidad,
             zipcode: zipcode,
@@ -370,7 +371,7 @@ const DB = {
         const list = document.getElementById('fb-doctors-list');
         if (!list) return;
         list.innerHTML = '<div style="color:#888;font-size:11px;">Cargando...</div>';
-        this.ref('doctors').on('value', (snapshot) => {
+        onValue(this.r('doctors'), (snapshot) => {
             const data = snapshot.val();
             if (!data) { list.innerHTML = '<div style="color:#888;font-size:11px;">Sin doctores</div>'; return; }
             list.innerHTML = '';
@@ -391,7 +392,7 @@ const DB = {
     },
 
     deleteDoctor(key) {
-        this.ref('doctors/' + key).remove().then(() => {
+        remove(this.r('doctors/' + key)).then(() => {
             this.showToast('Doctor eliminado');
             this.loadDoctors();
         });
@@ -410,7 +411,7 @@ const DB = {
 
         if (!doctorId || !mpnLinkId || !facilityName) { this.showToast('Completa doctor, MPN link y nombre'); return; }
 
-        this.push('doctor_facilities').set({
+        set(push(this.r('doctor_facilities')), {
             doctor_id: doctorId,
             mpn_link_id: mpnLinkId,
             facility_name: facilityName,
@@ -431,7 +432,7 @@ const DB = {
         const list = document.getElementById('fb-facilities-list');
         if (!list) return;
         list.innerHTML = '<div style="color:#888;font-size:11px;">Cargando...</div>';
-        this.ref('doctor_facilities').on('value', (snapshot) => {
+        onValue(this.r('doctor_facilities'), (snapshot) => {
             const data = snapshot.val();
             if (!data) { list.innerHTML = '<div style="color:#888;font-size:11px;">Sin facilities</div>'; return; }
             list.innerHTML = '';
@@ -447,7 +448,7 @@ const DB = {
     },
 
     deleteFacility(key) {
-        this.ref('doctor_facilities/' + key).remove().then(() => {
+        remove(this.r('doctor_facilities/' + key)).then(() => {
             this.showToast('Facility eliminada');
             this.loadFacilities();
         });
@@ -456,7 +457,7 @@ const DB = {
     // ============ SEED DATA ============
     seedSampleData() {
         if (!this.connected) { this.showToast('Conecta Firebase primero'); return; }
-        this.ref('claims').set({
+        set(this.r('claims'), {
             'claim_001': {
                 codigo_aseguranza: 'WC-2026-001', tipo: 'Workers Comp',
                 fecha_reclamo: '2026-01-15', fecha_lesion: '2025-12-01',
@@ -470,24 +471,24 @@ const DB = {
                 mpn_link_id: null, fecha_creacion: Date.now()
             }
         }).then(() => {
-            this.ref('insurance').set({
+            set(this.r('insurance'), {
                 'ins_001': { nombre: 'State Farm', policy_number: 'SF-123456', telefono: '(555) 123-4567', email: 'statefarm@example.com', direccion: '123 Main St', estado: 'CA', fecha_creacion: Date.now() },
                 'ins_002': { nombre: 'GEICO', policy_number: 'GE-789012', telefono: '(555) 987-6543', email: 'geico@example.com', direccion: '456 Elm St', estado: 'TX', fecha_creacion: Date.now() }
             }).then(() => {
-                this.ref('attorneys').set({
+                set(this.r('attorneys'), {
                     'att_001': { nombre: 'John Smith', firma: 'Smith & Associates', especialidad: 'Workers Comp', telefono: '(555) 111-1111', email: 'john@smith.com', direccion: '789 Oak Ave', estado: 'CA', activo: true, fecha_creacion: Date.now() },
                     'att_002': { nombre: 'Maria Garcia', firma: 'Garcia Law Firm', especialidad: 'PI', telefono: '(555) 222-2222', email: 'maria@garcia.com', direccion: '321 Pine St', estado: 'TX', activo: true, fecha_creacion: Date.now() }
                 }).then(() => {
-                    this.ref('doctors').set({
+                    set(this.r('doctors'), {
                         'doc_001': { nombre: 'Dr. James Wilson', especialidad: 'Ortopedia', zipcode: '90210', lat: 34.0901, lng: -118.4065, telefono: '(555) 333-3333', fecha_creacion: Date.now() },
                         'doc_002': { nombre: 'Dr. Sarah Chen', especialidad: 'Neurologia', zipcode: '10001', lat: 40.7128, lng: -74.0060, telefono: '(555) 444-4444', fecha_creacion: Date.now() },
                         'doc_003': { nombre: 'Dr. Robert Martinez', especialidad: 'Medicina Fisica', zipcode: '60601', lat: 41.8781, lng: -87.6298, telefono: '(555) 555-5555', fecha_creacion: Date.now() }
                     }).then(() => {
-                        this.ref('mpn_links').set({
+                        set(this.r('mpn_links'), {
                             'mpn_001': { url: 'https://mpn1.example.com', nombre: 'MPN Red de California', aseguranca_id: 'ins_001', caso_asociado: 'claim_001', fecha_creacion: Date.now() },
                             'mpn_002': { url: 'https://mpn2.example.com', nombre: 'MPN Network Texas', aseguranca_id: 'ins_002', caso_asociado: 'claim_002', fecha_creacion: Date.now() }
                         }).then(() => {
-                            this.ref('doctor_facilities').set({
+                            set(this.r('doctor_facilities'), {
                                 'fac_001': { doctor_id: 'doc_001', mpn_link_id: 'mpn_001', facility_name: 'Wilson Ortho Clinic', facility_type: 'Clinica', body_part: 'Espalda, Rodilla', rol_proveedor: 'PTP', estado: 'Activo', fecha_creacion: Date.now() },
                                 'fac_002': { doctor_id: 'doc_002', mpn_link_id: 'mpn_002', facility_name: 'Chen Neurology Center', facility_type: 'Hospital', body_part: 'Cuello, Hombro', rol_proveedor: 'QME', estado: 'Activo', fecha_creacion: Date.now() }
                             }).then(() => {
@@ -507,14 +508,14 @@ const DB = {
         if (!this.connected) return;
         if (!confirm('¿Eliminar TODOS los datos? Esto no se puede deshacer.')) return;
         ['claims', 'insurance', 'attorneys', 'mpn_links', 'doctors', 'doctor_facilities'].forEach(path => {
-            this.ref(path).set(null);
+            set(this.r(path), null);
         });
         this.showToast('Todos los datos eliminados');
     },
 
     // ============ DROPDOWN POPULATORS ============
     populateMPNSelect(selectId) {
-        this.ref('mpn_links').once('value').then((snapshot) => {
+        onValue(this.r('mpn_links'), (snapshot) => {
             const data = snapshot.val();
             const sel = document.getElementById(selectId);
             if (!sel) return;
@@ -533,7 +534,7 @@ const DB = {
     },
 
     populateInsuranceSelect(selectId) {
-        this.ref('insurance').once('value').then((snapshot) => {
+        onValue(this.r('insurance'), (snapshot) => {
             const data = snapshot.val();
             const sel = document.getElementById(selectId);
             if (!sel) return;
@@ -552,7 +553,7 @@ const DB = {
     },
 
     populateDoctorsSelect(selectId) {
-        this.ref('doctors').once('value').then((snapshot) => {
+        onValue(this.r('doctors'), (snapshot) => {
             const data = snapshot.val();
             const sel = document.getElementById(selectId);
             if (!sel) return;
@@ -571,7 +572,7 @@ const DB = {
     },
 
     populateAttorneysSelect(selectId) {
-        this.ref('attorneys').once('value').then((snapshot) => {
+        onValue(this.r('attorneys'), (snapshot) => {
             const data = snapshot.val();
             const sel = document.getElementById(selectId);
             if (!sel) return;
@@ -589,5 +590,5 @@ const DB = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    FIREBASE.init();
+    DB.init();
 });
