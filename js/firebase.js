@@ -11,7 +11,7 @@ const FIREBASE_CONFIG = {
     appId: "1:121406195231:web:1df294770ef7204158b72a"
 };
 
-const DB = {
+window.FIREBASE = {
     db: null,
     connected: false,
     panelOpen: false,
@@ -143,7 +143,7 @@ const DB = {
                 const c = data[key];
                 const div = document.createElement('div');
                 div.style.cssText = 'background:#0f3460;padding:8px;margin-bottom:4px;border-radius:4px;color:#fff;font-size:11px;cursor:pointer;';
-                div.innerHTML = `<strong>${c.codigo_aseguranza || 'N/A'}</strong> - ${c.tipo || ''} (${c.estatus || ''})<br><span style="color:#aaa;font-size:10px;">${c.descripcion || ''}</span><br><span style="color:#e94560;cursor:pointer" onclick="DB.deleteClaim('${key}')">[x]</span>`;
+                div.innerHTML = `<strong>${c.codigo_aseguranza || 'N/A'}</strong> - ${c.tipo || ''} (${c.estatus || ''})<br><span style="color:#aaa;font-size:10px;">${c.descripcion || ''}</span><br><span style="color:#e94560;cursor:pointer" onclick="FIREBASE.deleteClaim('${key}')">[x]</span>`;
                 div.onclick = () => this.flyToClaim(key);
                 list.appendChild(div);
             });
@@ -217,7 +217,7 @@ const DB = {
                 const ins = data[key];
                 const div = document.createElement('div');
                 div.style.cssText = 'background:#0f3460;padding:8px;margin-bottom:4px;border-radius:4px;color:#fff;font-size:11px;';
-                div.innerHTML = `<strong>${ins.nombre || ''}</strong> - Policy: ${ins.policy_number || ''}<br><span style="color:#aaa;font-size:10px;">${ins.estado || ''} | ${ins.email || ''}</span><br><span style="color:#e94560;cursor:pointer" onclick="DB.deleteInsurance('${key}')">[x]</span>`;
+                div.innerHTML = `<strong>${ins.nombre || ''}</strong> - Policy: ${ins.policy_number || ''}<br><span style="color:#aaa;font-size:10px;">${ins.estado || ''} | ${ins.email || ''}</span><br><span style="color:#e94560;cursor:pointer" onclick="FIREBASE.deleteInsurance('${key}')">[x]</span>`;
                 div.onclick = () => this.showToast(`${ins.nombre} - ${ins.policy_number}`);
                 list.appendChild(div);
             });
@@ -276,7 +276,7 @@ const DB = {
                 const div = document.createElement('div');
                 div.style.cssText = 'background:#0f3460;padding:8px;margin-bottom:4px;border-radius:4px;color:#fff;font-size:11px;';
                 const activoColor = a.activo ? '#2ecc71' : '#e94560';
-                div.innerHTML = `<strong>${a.nombre || ''}</strong> - ${a.firma || ''} (${a.especialidad || ''})<br><span style="color:${activoColor};font-size:10px;">${a.activo ? 'Activo' : 'Inactivo'}</span><br><span style="color:#e94560;cursor:pointer" onclick="DB.deleteAttorney('${key}')">[x]</span>`;
+                div.innerHTML = `<strong>${a.nombre || ''}</strong> - ${a.firma || ''} (${a.especialidad || ''})<br><span style="color:${activoColor};font-size:10px;">${a.activo ? 'Activo' : 'Inactivo'}</span><br><span style="color:#e94560;cursor:pointer" onclick="FIREBASE.deleteAttorney('${key}')">[x]</span>`;
                 list.appendChild(div);
             });
         });
@@ -322,7 +322,7 @@ const DB = {
                 const link = data[key];
                 const div = document.createElement('div');
                 div.style.cssText = 'background:#0f3460;padding:8px;margin-bottom:4px;border-radius:4px;color:#fff;font-size:11px;';
-                div.innerHTML = `<strong>${link.nombre || ''}</strong> - ${link.url || ''}<br><span style="color:#aaa;font-size:10px;">Caso: ${link.caso_asociado || ''}</span><br><span style="color:#e94560;cursor:pointer" onclick="DB.deleteMPNLink('${key}')">[x]</span>`;
+                div.innerHTML = `<strong>${link.nombre || ''}</strong> - ${link.url || ''}<br><span style="color:#aaa;font-size:10px;">Caso: ${link.caso_asociado || ''}</span><br><span style="color:#e94560;cursor:pointer" onclick="FIREBASE.deleteMPNLink('${key}')">[x]</span>`;
                 div.onclick = () => {
                     MAP.map.flyTo([link.lat || 39.8283, link.lng || -98.5795], 10);
                     MAP.addMarker({ lat: link.lat, lng: link.lng }, { address: link.nombre });
@@ -379,7 +379,7 @@ const DB = {
                 const d = data[key];
                 const div = document.createElement('div');
                 div.style.cssText = 'background:#0f3460;padding:8px;margin-bottom:4px;border-radius:4px;color:#fff;font-size:11px;cursor:pointer;';
-                div.innerHTML = `<strong>${d.nombre || ''}</strong> - ${d.especialidad || ''} (${d.zipcode || ''})<br><span style="color:#aaa;font-size:10px;">${d.lat ? d.lat.toFixed(4) : ''}, ${d.lng ? d.lng.toFixed(4) : ''}</span><br><span style="color:#e94560;cursor:pointer" onclick="DB.deleteDoctor('${key}')">[x]</span>`;
+                div.innerHTML = `<strong>${d.nombre || ''}</strong> - ${d.especialidad || ''} (${d.zipcode || ''})<br><span style="color:#aaa;font-size:10px;">${d.lat ? d.lat.toFixed(4) : ''}, ${d.lng ? d.lng.toFixed(4) : ''}</span><br><span style="color:#e94560;cursor:pointer" onclick="FIREBASE.deleteDoctor('${key}')">[x]</span>`;
                 div.onclick = () => {
                     if (d.lat && d.lng) {
                         MAP.map.flyTo([d.lat, d.lng], 12);
@@ -441,7 +441,7 @@ const DB = {
                 const div = document.createElement('div');
                 div.style.cssText = 'background:#0f3460;padding:8px;margin-bottom:4px;border-radius:4px;color:#fff;font-size:11px;';
                 const rolColor = { PTP: '#2ecc71', STP: '#3498db', LIEN: '#e94560', QME: '#f39c12', MTUS: '#9b59b6', OTRO: '#95a5a6' }[f.rol_proveedor] || '#aaa';
-                div.innerHTML = `<strong>${f.facility_name || ''}</strong> - Doctor: ${f.doctor_id || ''} | MPN: ${f.mpn_link_id || ''}<br><span style="color:${rolColor};font-size:10px;">${f.rol_proveedor || ''}</span> | ${f.body_part || ''} | ${f.estado || ''}<br><span style="color:#e94560;cursor:pointer" onclick="DB.deleteFacility('${key}')">[x]</span>`;
+                div.innerHTML = `<strong>${f.facility_name || ''}</strong> - Doctor: ${f.doctor_id || ''} | MPN: ${f.mpn_link_id || ''}<br><span style="color:${rolColor};font-size:10px;">${f.rol_proveedor || ''}</span> | ${f.body_part || ''} | ${f.estado || ''}<br><span style="color:#e94560;cursor:pointer" onclick="FIREBASE.deleteFacility('${key}')">[x]</span>`;
                 list.appendChild(div);
             });
         });
@@ -590,5 +590,5 @@ const DB = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    DB.init();
+    FIREBASE.init();
 });
