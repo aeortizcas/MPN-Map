@@ -13,8 +13,8 @@ const MAP = {
         L.Icon.Default.imagePath = 'lib/leaflet/images';
 
         this.map = L.map('map', {
-            center: [37.4029, -119.2598],
-            zoom: 6,
+            center: [34.03, -117.63],
+            zoom: 12,
             maxBounds: [[32.5, -124.5], [42.0, -114.0]],
             maxBoundsViscosity: 0.8,
             zoomControl: false,
